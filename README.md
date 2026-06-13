@@ -1,41 +1,55 @@
 # es4armbian-1key
 
-一鍵將 Armbian 變身為復古遊戲機（搭配 [es4armbian](https://github.com/w2xg2022/es4armbian)）。
+一键将 Armbian 变身为复古游戏机（搭配 [es4armbian](https://github.com/w2xg2022/es4armbian)）。
 
-## 快速開始
+## 快速开始
 
-在 Armbian (aarch64) 上以 root 執行：
+在 Armbian (aarch64) 上以 root 执行：
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/w2xg2022/es4armbian-1key/main/es4armbian-1key.sh | sudo bash
 ```
 
-只需這一個檔案，其餘各階段腳本與素材會在執行時自動從本倉庫下載到 `/tmp/es4armbian-1key/`。
+只需这一个文件，其余各阶段脚本与素材会在执行时自动从本仓库下载到 `/tmp/es4armbian-1key/`。
 
-完成後執行 `reboot`，開機將自動進入 EmulationStation。
+执行时会依次询问以下设定（直接按 Enter 套用预设值即可）：
 
-## 各階段說明
+1. 是否隐藏开机跑码画面（预设：是，套用自定开机图）
+2. 要安装的游戏平台（可多选，预设见脚本内 `platforms.sh`）
+3. `game` 用户密码（预设：`1234`）
+4. 游戏切换时偶尔会闪过一行无害的 ALSA 错误信息，是否隐藏（预设：是）
 
-| 階段 | 腳本 | 內容 |
+完成后执行 `reboot`，开机将自动进入 EmulationStation。
+
+## 各阶段说明
+
+| 阶段 | 脚本 | 内容 |
 | --- | --- | --- |
-| 1 | `scripts/01-prep.sh` | 安裝共用依賴、建立 `game` 使用者、偵測顯示模式（KMSDRM / X11） |
-| 2 | `scripts/02-bootsplash.sh` | 隱藏開機跑碼（`armbianEnv.txt`：`verbosity=0`、`bootlogo=true`），套用自訂 1080p 開機畫面 |
-| 3 | `scripts/03-retroarch.sh` | 安裝 RetroArch + NES/SNES core，套用簡體中文設定檔，修正選單中文字體亂碼 |
-| 4 | `scripts/04-emulationstation.sh` | 從 es4armbian Release 下載並部署 EmulationStation，套用 `es_systems.cfg` / `es_settings.cfg` |
-| 5 | `scripts/05-autostart.sh` | 設定開機自動啟動（KMSDRM 直接啟動 / X11 透過 openbox + systemd） |
+| 1 | `scripts/01-prep.sh` | 安装共用依赖、建立 `game` 用户、部署 `batocera-wifi`/`batocera-config`/`batocera-bluetooth`/`emuelec-utils` 兼容脚本（使 ES 的网络/蓝牙设置菜单可用）、部署 ALSA 软件音量控制（启用 ES 音量设置菜单）、为 `ping` 赋予 `cap_net_raw` 权限（消除网络检测错误信息） |
+| 2 | `scripts/02-bootsplash.sh` | 隐藏开机跑码：设定 `armbianEnv.txt`（`verbosity=0`、`bootlogo=false`、`extraargs` 加入 `splash` 等参数及关键的 `plymouth.ignore-serial-consoles`），套用自定 Plymouth armbian 主题开机画面并重建 initramfs |
+| 3 | `scripts/03-retroarch.sh` | 安装 RetroArch + 所选平台 core，套用简体中文界面设定（含 SELECT+X 即时存档 / SELECT+Y 载入即时存档 / SELECT+START 退出游戏），修正菜单与 OSD 中文字体乱码（`xmb_font`/`video_font_path`），将 `audio_driver` 改为 `alsa`，并启用 Samba 供上传 ROM |
+| 4 | `scripts/04-emulationstation.sh` | 从 es4armbian Release 下载并部署 EmulationStation，依所选平台生成 `es_systems.cfg`，套用简体中文 `es_settings.cfg`，部署主菜单背景音乐（BGM），若选择 FC 平台且 ROM 目录为空则放入示范 ROM（240p Test Suite） |
+| 5 | `scripts/05-autostart.sh` | 设定开机自动登录并以 KMSDRM 模式启动 EmulationStation（`es4armbian.service`），可选择过滤 ALSA 错误信息 |
+| 6 | `scripts/06-controller-sync.sh` | 将 ES「控制器和蓝牙设置」中配置好的手柄按键（`es_input.cfg`）自动转换为 RetroArch autoconfig 设定文件，使手柄在 RetroArch / 各游戏核心中可直接使用，并通过 systemd path 单元在 ES 中重新设置手柄后自动重新生成 |
 
-每支腳本皆可單獨重跑（idempotent），且會在修改設定前以 `<file>.orig` 備份原始檔，方便還原。
+每支脚本皆可单独重跑（idempotent），且会在修改设定前以 `<file>.orig` 备份原始文件，方便还原。
 
 ## 素材 (`assets/`)
 
-- `watermark.png`：1080p 開機畫面（256 色，~556KB）
-- `retroarch/retroarch.cfg`：預設簡體中文介面、SELECT+START 退出遊戲
-- `fonts/regular.ttf`、`fonts/bold.ttf`：修正 RetroArch ozone 主題中文選單亂碼
-- `emulationstation/es_systems.cfg`、`es_settings.cfg`：SNES / NES 對應 RetroArch core 路徑
+- `watermark.png`：1080p 开机画面（256 色，~556KB），用于 Plymouth armbian 主题
+- `configs/asound.conf`：ALSA 软件音量控制设定（启用 ES 音量设置菜单，`amixer -c0 sset PCM <百分比>%` 可调节音量）
+- `scripts/batocera-wifi`、`batocera-config`、`batocera-bluetooth`：网络/蓝牙设置兼容脚本（同时部署到 `/usr/local/bin/` 与 `/usr/bin/batocera/`，供 `isScriptingSupported()` 硬编码路径检测）
+- `scripts/emuelec-utils`：避免 ES 与 RetroArch 切换时跳出 "not found" 错误信息的兼容脚本
+- `scripts/es-input-to-retroarch.py`：将 ES 手柄设定（`es_input.cfg`）转换为 RetroArch autoconfig 的脚本
+- `retroarch/retroarch.cfg`：预设简体中文界面、SELECT+X/SELECT+Y 即时存档与读档、SELECT+START 退出游戏、`audio_driver = alsa`
+- `fonts/regular.ttf`、`fonts/bold.ttf`：修正 RetroArch xmb 主题菜单与 OSD 中文字体乱码
+- `emulationstation/es_systems.cfg`、`es_settings.cfg`：各平台对应 RetroArch core 路径与简体中文预设值
+- `music/famicommunist-manifesto.ogg`：ES 主菜单背景音乐（CC0 授权，出自 OpenGameArt Fakebit/Chiptune Music Pack）
+- `roms/fc/240pee.nes`、`gamelist.xml`、`media/images/240pee.png`：FC 平台示范 ROM（240p Test Suite v0.23，GNU GPL v2+ 授权）
 
-## 還原
+## 还原
 
-各階段腳本修改的檔案都會留下 `.orig` 備份，例如：
+各阶段脚本修改的文件都会留下 `.orig` 备份，例如：
 
 ```bash
 mv /boot/armbianEnv.txt.orig /boot/armbianEnv.txt
