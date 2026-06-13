@@ -1,0 +1,129 @@
+#!/usr/bin/env python3
+"""将 EmulationStation 的手柄按键映射 (es_input.cfg) 转换为
+RetroArch 的 autoconfig 设定档，让 ES 设定好的手柄可直接在
+RetroArch / 游戏核心中使用，不需要重新设置。"""
+import os
+import sys
+import xml.etree.ElementTree as ET
+
+# ES 按键名 -> RetroArch autoconfig 按键名（按钮类）
+BUTTON_MAP = {
+    "a": "input_a_btn",
+    "b": "input_b_btn",
+    "x": "input_x_btn",
+    "y": "input_y_btn",
+    "start": "input_start_btn",
+    "select": "input_select_btn",
+    "leftshoulder": "input_l_btn",
+    "rightshoulder": "input_r_btn",
+    "leftthumb": "input_l3_btn",
+    "rightthumb": "input_r3_btn",
+    "hotkeyenable": "input_enable_hotkey_btn",
+}
+
+# ES 按键名 -> RetroArch autoconfig 按键名（摇杆轴类，含正负号）
+AXIS_MAP = {
+    "lefttrigger": "input_l2_axis",
+    "righttrigger": "input_r2_axis",
+    "leftanalogleft": "input_left_x_minus_axis",
+    "leftanalogright": "input_left_x_plus_axis",
+    "leftanalogup": "input_left_y_minus_axis",
+    "leftanalogdown": "input_left_y_plus_axis",
+    "rightanalogleft": "input_right_x_minus_axis",
+    "rightanalogright": "input_right_x_plus_axis",
+    "rightanalogup": "input_right_y_minus_axis",
+    "rightanalogdown": "input_right_y_plus_axis",
+}
+
+# ES 方向键名 -> RetroArch autoconfig 按键名（D-Pad）
+DPAD_MAP = {
+    "up": "input_up_btn",
+    "down": "input_down_btn",
+    "left": "input_left_btn",
+    "right": "input_right_btn",
+}
+
+# SDL hat 方向位标记
+HAT_DIR = {1: "up", 2: "right", 4: "down", 8: "left"}
+
+
+def guid_to_vendor_product(guid):
+    try:
+        raw = bytes.fromhex(guid)
+        vendor = int.from_bytes(raw[4:6], "little")
+        product = int.from_bytes(raw[8:10], "little")
+        return vendor, product
+    except Exception:
+        return None, None
+
+
+def convert_device(input_config, out_dir):
+    device_name = input_config.get("deviceName", "")
+    guid = input_config.get("deviceGUID", "")
+    if not device_name:
+        return
+
+    lines = []
+    lines.append('input_driver = "udev"')
+    lines.append('input_device = "%s"' % device_name)
+
+    vendor, product = guid_to_vendor_product(guid)
+    if vendor is not None:
+        lines.append('input_vendor_id = "%d"' % vendor)
+        lines.append('input_product_id = "%d"' % product)
+
+    dpad_from_hat = {}
+    dpad_from_button = {}
+
+    for inp in input_config.findall("input"):
+        name = inp.get("name")
+        itype = inp.get("type")
+        iid = inp.get("id")
+        value = inp.get("value")
+
+        if name in BUTTON_MAP:
+            lines.append('%s = "%s"' % (BUTTON_MAP[name], iid))
+        elif name in AXIS_MAP:
+            if itype == "axis":
+                sign = "+" if int(value) >= 0 else "-"
+                lines.append('%s = "%s%s"' % (AXIS_MAP[name], sign, iid))
+            else:
+                lines.append('%s = "%s"' % (AXIS_MAP[name], iid))
+        elif name in DPAD_MAP:
+            if itype == "hat":
+                direction = HAT_DIR.get(int(value))
+                if direction:
+                    dpad_from_hat[name] = 'h%s%s' % (iid, direction)
+            else:
+                dpad_from_button[name] = iid
+
+    for name, key in DPAD_MAP.items():
+        if name in dpad_from_hat:
+            lines.append('%s = "%s"' % (key, dpad_from_hat[name]))
+        elif name in dpad_from_button:
+            lines.append('%s = "%s"' % (key, dpad_from_button[name]))
+
+    safe_name = "".join(c if c.isalnum() or c in " _-" else "_" for c in device_name).strip()
+    out_path = os.path.join(out_dir, "%s.cfg" % safe_name)
+    with open(out_path, "w") as f:
+        f.write("\n".join(lines) + "\n")
+    print("写入 %s" % out_path)
+
+
+def main():
+    es_input_cfg = sys.argv[1] if len(sys.argv) > 1 else os.path.expanduser("~/.emulationstation/es_input.cfg")
+    out_dir = sys.argv[2] if len(sys.argv) > 2 else os.path.expanduser("~/.config/retroarch/autoconfig")
+
+    if not os.path.isfile(es_input_cfg):
+        return
+
+    os.makedirs(out_dir, exist_ok=True)
+
+    tree = ET.parse(es_input_cfg)
+    for input_config in tree.getroot().findall("inputConfig"):
+        if input_config.get("type") == "joystick":
+            convert_device(input_config, out_dir)
+
+
+if __name__ == "__main__":
+    main()

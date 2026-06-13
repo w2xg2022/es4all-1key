@@ -67,3 +67,21 @@
   GNU GPL v2+ 授权，可自由使用），并附带 `gamelist.xml`（含简介文字）与截图，
   让使用者首次开机时即使尚未上传 ROM，也能进入游戏列表查看与测试画面/控制器
   （素材位于 `assets/roms/fc/`：`240pee.nes`、`gamelist.xml`、`media/images/240pee.png`）
+- [x] 新增阶段 `06-controller-sync.sh`：将 ES「控制器和蓝牙设置」中设定好的
+  手柄按键映射（`~/.emulationstation/es_input.cfg`）自动转换为 RetroArch
+  autoconfig 设定档（`~/.config/retroarch/autoconfig/<手柄名>.cfg`），
+  使用者在 ES 中配置好的手柄可直接在 RetroArch / 各游戏核心中使用，
+  不会再出现 "xxx pad (vendor/product) not configured" 警告，也不需要
+  在 RetroArch 里重新设置一次按键
+  - 转换脚本：`assets/scripts/es-input-to-retroarch.py`
+    （部署到 `/usr/local/bin/es-input-to-retroarch.py`），支援按钮、
+    摇杆轴（含正负号）、D-Pad（hat 或按钮形式）与 hotkey 按键的映射，
+    并从 `deviceGUID` 解析出 `input_vendor_id` / `input_product_id`
+  - 安装时若已存在 `es_input.cfg` 会立即同步一次
+  - 透过 systemd path 单元 `es-controller-sync.path`（监控
+    `es_input.cfg` 的 `PathModified`）与对应的
+    `es-controller-sync.service`，使用者每次在 ES 中重新设置手柄后，
+    会自动重新生成 autoconfig，无需手动操作
+  - 已在 MD1000 上验证：实际 Xbox 360 Controller 的 es_input.cfg
+    被正确转换（vendor_id=1118, product_id=654，各按键/摇杆/D-Pad/
+    hotkey 映射均正确），且修改 es_input.cfg 后会自动触发重新生成
