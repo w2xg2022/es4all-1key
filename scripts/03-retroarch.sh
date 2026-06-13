@@ -41,6 +41,13 @@ if grep -q '^xmb_font' "$RA_CFG_DIR/retroarch.cfg"; then
 else
     echo "xmb_font = \"$XMB_FONT_PATH\"" >> "$RA_CFG_DIR/retroarch.cfg"
 fi
+
+log "套用中文 OSD 提示字体修正（video_font_path 留空时只会用内建字体，中文显示为方块）"
+if grep -q '^video_font_path' "$RA_CFG_DIR/retroarch.cfg"; then
+    sed -i "s|^video_font_path = .*|video_font_path = \"$XMB_FONT_PATH\"|" "$RA_CFG_DIR/retroarch.cfg"
+else
+    echo "video_font_path = \"$XMB_FONT_PATH\"" >> "$RA_CFG_DIR/retroarch.cfg"
+fi
 chown "$GAME_USER:$GAME_USER" "$RA_CFG_DIR/retroarch.cfg"
 
 log "从 libretro buildbot 下载所选平台的 core：$PLATFORMS"

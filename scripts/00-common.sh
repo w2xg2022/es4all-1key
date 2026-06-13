@@ -32,7 +32,9 @@ load_config() {
 ensure_game_user() {
     if ! id "$GAME_USER" >/dev/null 2>&1; then
         log "建立使用者 $GAME_USER"
-        useradd -m -G audio,video,input,render "$GAME_USER"
+        useradd -m -G audio,video,input,render,netdev "$GAME_USER"
+    else
+        usermod -aG netdev "$GAME_USER"
     fi
 }
 

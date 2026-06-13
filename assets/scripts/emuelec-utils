@@ -1,0 +1,34 @@
+#!/bin/bash
+# emuelec-utils 兼容脚本（es4armbian / Armbian 版本）
+#
+# EmulationStation（_ENABLEEMUELEC 编译）在多处调用 /usr/bin/emuelec-utils，
+# 例如每次释放/重建音频时调用 `emuelec-utils audio alsa`。原版脚本依赖
+# EmuELEC 系统专有工具链，在 Armbian 上不存在，导致
+# "/usr/bin/emuelec-utils: not found" 错误被打印到屏幕
+# （ES 在切换到 RetroArch 释放 DRM master 时短暂可见，表现为乱码/小代码）。
+#
+# 这里仅实现少数会影响使用体验的子命令，其余未知子命令静默返回成功，
+# 避免在 ES 与游戏之间切换时再次跳出错误信息。
+set -uo pipefail
+
+case "${1:-}" in
+    audio)
+        # emuelec-utils audio alsa：原本用于释放/重建 ALSA 设备，
+        # 在 Armbian + SDL2 下由系统自行管理，无需额外处理。
+        exit 0
+        ;;
+    resolutions|dimensions|getshaders|timezones)
+        # 返回空列表，对应菜单项会显示为空选项而非报错
+        exit 0
+        ;;
+    current_timezone)
+        timedatectl show -p Timezone --value 2>/dev/null || echo "UTC"
+        ;;
+    test)
+        echo "ok"
+        ;;
+    *)
+        # 未知子命令：静默成功，避免在控制台输出错误
+        exit 0
+        ;;
+esac

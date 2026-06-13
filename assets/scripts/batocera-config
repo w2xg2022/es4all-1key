@@ -1,0 +1,38 @@
+#!/bin/bash
+# batocera-config 兼容脚本（es4armbian / Armbian 版本）
+# 仅实现 EmulationStation 会用到的子命令；目前主要用于 wifi enable/disable
+# （转发给 batocera-wifi），其余子命令为占位实现避免报错。
+set -euo pipefail
+
+case "${1:-}" in
+    wifi)
+        shift
+        exec batocera-wifi "$@"
+        ;;
+    canupdate)
+        echo "0"
+        ;;
+    overscan)
+        exit 0
+        ;;
+    storage)
+        case "${2:-}" in
+            list) echo "INTERNAL" ;;
+            current) echo "INTERNAL" ;;
+            *) exit 0 ;;
+        esac
+        ;;
+    forgetBT)
+        exit 0
+        ;;
+    getRootPassword)
+        echo ""
+        ;;
+    lsoutputs)
+        exit 0
+        ;;
+    *)
+        echo "Usage: batocera-config {wifi|canupdate|overscan|storage|forgetBT|getRootPassword|lsoutputs} ..." >&2
+        exit 1
+        ;;
+esac

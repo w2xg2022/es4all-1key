@@ -1,0 +1,37 @@
+#!/bin/bash
+# batocera-wifi 兼容脚本（es4armbian / NetworkManager 版本）
+# EmulationStation 通过此脚本判断 WIFI 功能是否可用，
+# 并调用 enable/disable/list/scanlist 子命令操作 Wi-Fi。
+# 基于 nmcli（NetworkManager），适用于 Armbian/Debian。
+set -euo pipefail
+
+WIFI_DEV="$(nmcli -t -f DEVICE,TYPE device status 2>/dev/null | awk -F: '$2=="wifi"{print $1; exit}')"
+
+case "${1:-}" in
+    enable)
+        ssid="$2"
+        key="${3:-}"
+        nmcli radio wifi on >/dev/null 2>&1 || true
+        if [ -n "$key" ]; then
+            nmcli device wifi connect "$ssid" password "$key" ${WIFI_DEV:+ifname "$WIFI_DEV"} >/dev/null 2>&1
+        else
+            nmcli device wifi connect "$ssid" ${WIFI_DEV:+ifname "$WIFI_DEV"} >/dev/null 2>&1
+        fi
+        ;;
+    disable)
+        nmcli radio wifi off >/dev/null 2>&1 || true
+        ;;
+    list)
+        # 已知/已配置的 Wi-Fi 连接
+        nmcli -t -f SSID device wifi list 2>/dev/null | sort -u | sed '/^$/d'
+        ;;
+    scanlist)
+        nmcli device wifi rescan >/dev/null 2>&1 || true
+        sleep 2
+        nmcli -t -f SSID,SIGNAL device wifi list 2>/dev/null | awk -F: '!seen[$1]++ && $1!=""{print $1 ";" $2}'
+        ;;
+    *)
+        echo "Usage: batocera-wifi {enable SSID [KEY]|disable|list|scanlist}" >&2
+        exit 1
+        ;;
+esac

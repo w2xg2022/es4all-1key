@@ -1,0 +1,53 @@
+#!/bin/bash
+# batocera-bluetooth 兼容脚本（es4armbian / Armbian 版本）
+# 基于 bluetoothctl 实现 EmulationStation「控制器和蓝牙设置」所需的最小子命令集。
+set -euo pipefail
+
+bt_ready() {
+    systemctl is-active --quiet bluetooth || systemctl start bluetooth
+    rfkill unblock bluetooth 2>/dev/null || true
+}
+
+case "${1:-}" in
+    enable)
+        bt_ready
+        bluetoothctl power on >/dev/null
+        ;;
+    disable)
+        bluetoothctl power off >/dev/null 2>&1 || true
+        ;;
+    status)
+        bt_ready
+        if bluetoothctl show | grep -q "Powered: yes"; then
+            echo "enabled"
+        else
+            echo "disabled"
+        fi
+        ;;
+    pair)
+        # pair <MAC>
+        bt_ready
+        bluetoothctl power on >/dev/null
+        bluetoothctl agent on >/dev/null 2>&1 || true
+        bluetoothctl pair "${2:-}" || true
+        bluetoothctl trust "${2:-}" || true
+        bluetoothctl connect "${2:-}" || true
+        ;;
+    remove)
+        bluetoothctl remove "${2:-}" || true
+        ;;
+    list|paired)
+        bt_ready
+        bluetoothctl devices Paired 2>/dev/null || bluetoothctl paired-devices 2>/dev/null || true
+        ;;
+    scan)
+        bt_ready
+        bluetoothctl power on >/dev/null
+        timeout 10 bluetoothctl scan on >/dev/null 2>&1 || true
+        bluetoothctl devices
+        ;;
+    *)
+        echo "Usage: batocera-bluetooth {enable|disable|status|pair <MAC>|remove <MAC>|list|scan}" >&2
+        exit 1
+        ;;
+esac

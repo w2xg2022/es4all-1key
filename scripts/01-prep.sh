@@ -17,7 +17,33 @@ apt-get install -y --no-install-recommends \
     polkitd pkexec \
     libsdl2-mixer-2.0-0 \
     libfreeimage3 libcurl4 libpugixml1v5 \
-    fontconfig
+    fontconfig \
+    network-manager \
+    bluez \
+    alsa-ucm-conf
+
+log "部署 batocera-wifi / batocera-config / batocera-bluetooth 兼容脚本（供 EmulationStation 网络与蓝牙设置使用）"
+fetch_asset "scripts/batocera-wifi"
+fetch_asset "scripts/batocera-config"
+fetch_asset "scripts/batocera-bluetooth"
+install -o root -g root -m 0755 "$ASSETS_DIR/scripts/batocera-wifi" /usr/local/bin/batocera-wifi
+install -o root -g root -m 0755 "$ASSETS_DIR/scripts/batocera-config" /usr/local/bin/batocera-config
+install -o root -g root -m 0755 "$ASSETS_DIR/scripts/batocera-bluetooth" /usr/local/bin/batocera-bluetooth
+# ES 以 _ENABLEEMUELEC 编译，isScriptingSupported() 检查的是
+# /usr/bin/batocera/<name>（硬编码路径），故须额外部署一份到此处，
+# 否则「网络设置」「蓝牙设置」相关菜单不会出现。
+mkdir -p /usr/bin/batocera
+install -o root -g root -m 0755 "$ASSETS_DIR/scripts/batocera-wifi" /usr/bin/batocera/batocera-wifi
+install -o root -g root -m 0755 "$ASSETS_DIR/scripts/batocera-config" /usr/bin/batocera/batocera-config
+install -o root -g root -m 0755 "$ASSETS_DIR/scripts/batocera-bluetooth" /usr/bin/batocera/batocera-bluetooth
+
+log "部署 emuelec-utils 兼容脚本（避免 ES 与游戏切换时跳出 'not found' 错误）"
+fetch_asset "scripts/emuelec-utils"
+install -o root -g root -m 0755 "$ASSETS_DIR/scripts/emuelec-utils" /usr/bin/emuelec-utils
+
+log "部署 ALSA 软件音量控制配置（启用 ES 音量设置菜单）"
+fetch_asset "configs/asound.conf"
+install -o root -g root -m 0644 "$ASSETS_DIR/configs/asound.conf" /etc/asound.conf
 
 ensure_game_user
 set_game_password "$GAME_PASSWORD"
