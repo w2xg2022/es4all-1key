@@ -45,6 +45,9 @@ log "部署 ALSA 软件音量控制配置（启用 ES 音量设置菜单）"
 fetch_asset "configs/asound.conf"
 install -o root -g root -m 0644 "$ASSETS_DIR/configs/asound.conf" /etc/asound.conf
 
+log "授予 ping 命令 cap_net_raw 权限（ES 以 game 一般用户检测网络连通性需要用到）"
+setcap cap_net_raw+ep /bin/ping 2>/dev/null || setcap cap_net_raw+ep "$(command -v ping)"
+
 ensure_game_user
 set_game_password "$GAME_PASSWORD"
 

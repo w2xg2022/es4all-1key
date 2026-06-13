@@ -41,6 +41,14 @@
   也会被一并过滤），不影响其他错误讯息的可见性
 - [ ] 说明 RetroArch `audio_driver` 已从默认的 `pulse`（无 PulseAudio，导致游戏内无声音）
   改为 `alsa`
+- [x] 说明 `01-prep.sh` 新增 `setcap cap_net_raw+ep /bin/ping`：
+  根因排查发现 ES 在开机/ES↔RetroArch 切换时会以 `ping -c 1 ... 223.5.5.5/8.8.8.8` 等
+  侦测网络连通性（ApiSystem.cpp updateNetworkStatus），但 `game` 一般用户的 `ping`
+  缺少 `cap_net_raw` 权限，导致 `ping: socket: Operation not permitted /
+  missing cap_net_raw+p capability or setuid?` 错误讯息直接打印到 HDMI 画面
+  （因 ExecStart 以 `StandardOutput=tty` 跑），看起来像画面被"刷新/闪烁"。
+  设定 `setcap cap_net_raw+ep /bin/ping` 后，`game` 用户可正常 ping，不再有
+  该错误讯息污染画面（已在 MD1000 上验证）
 - [x] 说明 `04-emulationstation.sh` 新增：部署 ES 主菜单背景音乐（BGM），
   使用 CC0 授权曲目 "Famicommunist Manifesto"（出自 OpenGameArt 的
   Fakebit/Chiptune Music Pack，作者声明 CC0、可自由使用），
