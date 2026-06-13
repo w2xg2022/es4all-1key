@@ -1,6 +1,6 @@
 #!/bin/bash
 # es4armbian-1key 一鍵安裝腳本
-# 用法: curl -fsSL https://raw.githubusercontent.com/w2xg2022/es4armbian-1key/main/install.sh | sudo bash
+# 用法: curl -fsSL https://raw.githubusercontent.com/w2xg2022/es4armbian-1key/main/es4armbian-1key.sh | sudo bash
 set -euo pipefail
 
 REPO_RAW_BASE="${REPO_RAW_BASE:-https://raw.githubusercontent.com/w2xg2022/es4armbian-1key/main}"
@@ -10,13 +10,17 @@ SCRIPT_DIR="$WORKDIR/scripts"
 mkdir -p "$SCRIPT_DIR"
 
 if [ "$(id -u)" -ne 0 ]; then
-    echo "請用 root 執行（sudo bash $0 或透過 sudo bash <(curl ...)）" >&2
+    echo "請用 root 執行（sudo bash $0 或透過 curl ... | sudo bash）" >&2
     exit 1
 fi
 
 # 判斷是本機執行（倉庫已存在於本機）還是 curl 一鍵執行（需下載腳本）
-SELF_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-if [ -f "$SELF_DIR/scripts/00-common.sh" ]; then
+SELF_PATH="${BASH_SOURCE[0]:-}"
+SELF_DIR=""
+if [ -n "$SELF_PATH" ] && [ -f "$SELF_PATH" ]; then
+    SELF_DIR="$(cd "$(dirname "$SELF_PATH")" && pwd)"
+fi
+if [ -n "$SELF_DIR" ] && [ -f "$SELF_DIR/scripts/00-common.sh" ]; then
     SCRIPT_DIR="$SELF_DIR/scripts"
 else
     echo "[1key] 下載安裝腳本..."

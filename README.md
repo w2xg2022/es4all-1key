@@ -7,8 +7,10 @@
 在 Armbian (aarch64) 上以 root 執行：
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/w2xg2022/es4armbian-1key/main/install.sh | sudo bash
+curl -fsSL https://raw.githubusercontent.com/w2xg2022/es4armbian-1key/main/es4armbian-1key.sh | sudo bash
 ```
+
+只需這一個檔案，其餘各階段腳本與素材會在執行時自動從本倉庫下載到 `/tmp/es4armbian-1key/`。
 
 完成後執行 `reboot`，開機將自動進入 EmulationStation。
 
