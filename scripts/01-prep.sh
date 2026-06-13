@@ -1,14 +1,15 @@
 #!/bin/bash
-# 階段 1：環境檢測與共用依賴安裝
+# 阶段 1：环境检测与共用依赖安装
 set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")"
 . ./00-common.sh
 
 require_root
+load_config
 
-log "系統資訊：$(. /etc/os-release; echo "$PRETTY_NAME ($(uname -m))")"
+log "系统信息：$(. /etc/os-release; echo "$PRETTY_NAME ($(uname -m))")"
 
-log "安裝共用依賴（polkitd/pkexec、SDL2 mixer、字型相關工具等）"
+log "安装共用依赖（polkitd/pkexec、SDL2 mixer、字型相关工具等）"
 export DEBIAN_FRONTEND=noninteractive
 apt-get update -y
 apt-get install -y --no-install-recommends \
@@ -19,16 +20,15 @@ apt-get install -y --no-install-recommends \
     fontconfig
 
 ensure_game_user
+set_game_password "$GAME_PASSWORD"
 
 mkdir -p /tmp/es4armbian-1key
 
-# 顯示環境探測：之後第4階段（ES 部署）依此決定走 KMSDRM 或 X11
+# 仅支援 KMSDRM（非 X11）模式，需要 /dev/dri
 if [ -e /dev/dri/card0 ] || [ -e /dev/dri/card1 ]; then
-    log "偵測到 /dev/dri，後續優先嘗試 KMSDRM（非 X11）模式"
-    echo "kmsdrm" > /tmp/es4armbian-1key/display_mode
+    log "侦测到 /dev/dri，将使用 KMSDRM 模式启动 EmulationStation"
 else
-    warn "未偵測到 /dev/dri，後續將直接使用 X11 模式"
-    echo "x11" > /tmp/es4armbian-1key/display_mode
+    warn "未侦测到 /dev/dri，KMSDRM 模式可能无法正常显示，请确认显示驱动"
 fi
 
-log "階段 1 完成"
+log "阶段 1 完成"

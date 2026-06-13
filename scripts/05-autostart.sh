@@ -1,26 +1,32 @@
 #!/bin/bash
-# 階段 5：開機自動啟動 EmulationStation（仿 MD1000 pegasus-session 架構）
+# 阶段 5：开机自动登入并启动 EmulationStation（KMSDRM 模式）
 set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")"
 . ./00-common.sh
 
 require_root
+load_config
 ensure_game_user
 
 GAME_HOME="$(getent passwd "$GAME_USER" | cut -d: -f6)"
-DISPLAY_MODE="$(cat /tmp/es4armbian-1key/display_mode 2>/dev/null || echo x11)"
 
-if [ "$DISPLAY_MODE" = "kmsdrm" ]; then
-    log "設定 systemd 服務：直接以 KMSDRM 模式啟動 EmulationStation（無 X11）"
-    cat > /etc/systemd/system/es4armbian.service <<EOF
+log "停用 tty1 的 getty，避免与自动登入服务抢占终端"
+systemctl disable --now getty@tty1.service 2>/dev/null || true
+
+log "设定 systemd 服务：以 $GAME_USER 自动登入 tty1 并启动 EmulationStation（KMSDRM）"
+cat > /etc/systemd/system/es4armbian.service <<EOF
 [Unit]
 Description=es4armbian EmulationStation (KMSDRM)
-After=systemd-user-sessions.service
+After=systemd-user-sessions.service getty@tty1.service
+Conflicts=getty@tty1.service
 
 [Service]
 User=$GAME_USER
+Group=$GAME_USER
 PAMName=login
 TTYPath=/dev/tty1
+StandardInput=tty
+StandardOutput=tty
 Environment=SDL_VIDEODRIVER=kmsdrm
 ExecStart=/opt/emulationstation/emulationstation
 Restart=always
@@ -29,45 +35,11 @@ RestartSec=2
 [Install]
 WantedBy=graphical.target
 EOF
-else
-    log "設定 X11 環境：openbox autostart + xinitrc + systemd 服務"
-    mkdir -p "$GAME_HOME/.config/openbox"
 
-    cat > "$GAME_HOME/.xinitrc" <<'EOF'
-exec openbox-session
-EOF
-
-    cat > "$GAME_HOME/.config/openbox/autostart" <<'EOF'
-xset s off -dpms
-xset s noblank
-unclutter -idle 0 -root &
-(while true; do /opt/emulationstation/emulationstation; sleep 2; done) &
-EOF
-
-    chown -R "$GAME_USER:$GAME_USER" "$GAME_HOME/.xinitrc" "$GAME_HOME/.config/openbox"
-
-    cat > /etc/systemd/system/es4armbian.service <<EOF
-[Unit]
-Description=es4armbian EmulationStation (X11)
-After=systemd-user-sessions.service
-
-[Service]
-User=$GAME_USER
-PAMName=login
-TTYPath=/dev/tty1
-ExecStart=/usr/bin/startx $GAME_HOME/.xinitrc -- :0 vt1
-Restart=always
-RestartSec=2
-
-[Install]
-WantedBy=graphical.target
-EOF
-fi
-
-log "啟用 es4armbian.service（開機自動進入 EmulationStation）"
+log "启用 es4armbian.service（开机自动进入 EmulationStation）"
 systemctl daemon-reload
 systemctl enable es4armbian.service
 
-log "階段 5 完成"
-log "提示：請重啟測試（reboot）。若要先在桌面測試，可手動執行："
+log "阶段 5 完成"
+log "提示：请重启测试（reboot）。若要先在桌面测试，可手动执行："
 log "      systemctl start es4armbian.service"
