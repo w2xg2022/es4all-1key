@@ -41,6 +41,21 @@ else
     echo 'bootlogo=true' >> "$ENV_FILE"
 fi
 
+log "设定 $ENV_FILE：extraargs 加入 quiet systemd.show_status=0（隐藏systemd开机状态文字，loglevel仅能隐藏内核訊息）"
+if grep -q '^extraargs=' "$ENV_FILE"; then
+    current="$(sed -n 's/^extraargs=//p' "$ENV_FILE" | head -n1)"
+    for opt in quiet systemd.show_status=0; do
+        case " $current " in
+            *" $opt "*) ;;
+            *) current="$current $opt" ;;
+        esac
+    done
+    current="${current# }"
+    sed -i "s/^extraargs=.*/extraargs=$current/" "$ENV_FILE"
+else
+    echo 'extraargs=quiet systemd.show_status=0' >> "$ENV_FILE"
+fi
+
 if [ -d "$THEME_DIR" ]; then
     fetch_asset "watermark.png"
     backup_once "$WATERMARK"
