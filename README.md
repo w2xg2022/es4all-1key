@@ -37,10 +37,12 @@ curl -fsSL https://raw.githubusercontent.com/w2xg2022/es4armbian-1key/main/es4ar
 ### 阶段 3：部署 RetroArch（`03-retroarch.sh`）
 - 安装 RetroArch 及所选平台对应 core，套用简体中文界面与 SELECT 组合键热键（即时存档/读档/退出游戏）
 - 修正菜单与 OSD 中文字体乱码，`audio_driver` 改为 `alsa`，并启用 Samba 供上传 ROM
+- 针对 N64/PSP 等平台套用专属兼容性修正（如 N64 改用 angrylion 软件渲染、PSP 补装 `libopengl0`），避免特定 core 启动崩溃
 
 ### 阶段 4：部署 EmulationStation（`04-emulationstation.sh`）
-- 从 es4armbian Release 下载并部署 EmulationStation，依所选平台生成 `es_systems.cfg`
-- 套用简体中文 `es_settings.cfg`、部署主菜单背景音乐；若选择 FC 平台且 ROM 目录为空，预置示范 ROM（240p Test Suite）
+- 安装 EmulationStation 所需的动态库（libvlc 等），从 es4armbian Release 下载并部署到 `/opt/emulationstation`
+- 依所选平台生成 `es_systems.cfg`，套用简体中文 `es_settings.cfg`、部署主菜单背景音乐
+- 若选择 FC 平台且 ROM 目录为空，预置示范 ROM（240p Test Suite）
 
 ### 阶段 5：开机自动启动（`05-autostart.sh`）
 - 停用 tty1 的 getty，建立 `es4armbian.service`：以 `game` 用户自动登入 tty1，KMSDRM 模式启动 EmulationStation
