@@ -50,15 +50,14 @@ curl -fsSL https://raw.githubusercontent.com/w2xg2022/es4armbian-1key/main/es4ar
 - 将 ES「手柄和蓝牙设置」中配置好的手柄按键（`es_input.cfg`）转换为 RetroArch autoconfig，使手柄在 RetroArch / 各游戏核心中可直接使用
 - 通过 systemd path 单元监听 `es_input.cfg`，在 ES 中重新设置手柄后自动重新生成配置
 
-### 手柄热键同步行为说明（阶段6）
+## 手柄热键默认值
 
-`es-input-to-retroarch.py` 会将用户在 ES「手柄和蓝牙设置」里设定的按键，同步为对应设备的 RetroArch autoconfig：
+XBOX 360
+- SELECT+START
+- SELECT+X
+- SELECT+Y
 
-- **X / Y 键**：同步 `input_x_btn`/`input_y_btn` 的同时，也会写入 `input_save_state_btn`/`input_load_state_btn`（即时存档/读档热键）。无论用户使用哪支手柄、X/Y 设定在哪个按键上，"SELECT+X 存档 / SELECT+Y 读档"都会自动跟随调整，不会因为更换手柄而失效。
-- **Hotkey enable（热键启用键，组合键里的"SELECT"部分）**：
-  - 若 ES 在设定流程中记录了 `hotkeyenable`，会写入 `input_enable_hotkey_btn`，覆盖全局设定，组合键的"前导键"会跟随用户在 ES 里设定的键。
-  - 若 ES 没有记录 `hotkeyenable`（跳过该步骤），则退回 `assets/retroarch/retroarch.cfg` 的全局预设（`input_enable_hotkey_btn = "6"`，在默认的 Xbox 360 手柄上对应 SELECT 键）。
-- **START 键**：`input_start_btn` 同样每次都会同步，"SELECT+START 退出游戏"中 START 的部分也会跟随调整。
+
 
 ## 素材 (`assets/`)
 
