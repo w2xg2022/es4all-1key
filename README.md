@@ -17,9 +17,15 @@ curl -fsSL https://raw.githubusercontent.com/w2xg2022/es4armbian-1key/main/es4ar
 1. 是否隐藏开机跑码画面（预设：是，套用自定开机图）
 2. 要安装的游戏平台（可多选，预设见脚本内 `platforms.sh`）
 3. `game` 用户密码（预设：`1234`）
-4. 游戏切换时偶尔会闪过一行无害的 ALSA 错误信息，是否隐藏（预设：是）
+4. 开机/游戏切换时偶尔会闪过几行无害的 ALSA / KMSDRM 错误信息，是否隐藏（预设：是）
 
 完成后执行 `reboot`，开机将自动进入 EmulationStation。
+
+## 已测试型号
+
+| 品牌 | 型号 | 芯片 | 内存+闪存 | Armbian 固件 | 测试结果 |
+| --- | --- | --- | --- | --- | --- |
+| 浪潮 | MD1000 | RK3566 | 2+32 | Armbian_26.05.0_rockchip_md1000_trixie_6.18.33_server_2026.06.01.img.gz | 通过 |
 
 ## 各阶段说明
 

@@ -91,7 +91,7 @@ echo ""
 GAME_PASSWORD="$(ask "3) 请设定 game 使用者密码（直接 Enter 使用预设 1234）: " "1234")"
 
 echo ""
-HIDE_ALSA_ERRORS="$(ask "4) 游戏切换时偶尔会闪过一行 ALSA 错误讯息（无害），是否隐藏？[Y/n]: " "y")"
+HIDE_ALSA_ERRORS="$(ask "4) 开机/游戏切换时偶尔会闪过几行 ALSA / KMSDRM 错误讯息（无害），是否隐藏？[Y/n]: " "y")"
 case "$HIDE_ALSA_ERRORS" in
     [Nn]*) HIDE_ALSA_ERRORS="no" ;;
     *) HIDE_ALSA_ERRORS="yes" ;;

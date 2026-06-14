@@ -14,8 +14,8 @@ log "停用 tty1 的 getty，避免与自动登入服务抢占终端"
 systemctl disable --now getty@tty1.service 2>/dev/null || true
 
 if [ "$HIDE_ALSA_ERRORS" = "yes" ]; then
-    log "设定 systemd 服务：以 $GAME_USER 自动登入 tty1 并启动 EmulationStation（KMSDRM，过滤 ALSA 错误讯息）"
-    EXEC_START='/bin/bash -c '\''exec /opt/emulationstation/emulationstation 2> >(grep -v --line-buffered "ALSA lib" >&2)'\'''
+    log "设定 systemd 服务：以 $GAME_USER 自动登入 tty1 并启动 EmulationStation（KMSDRM，过滤 ALSA/KMSDRM 无害错误讯息）"
+    EXEC_START='/bin/bash -c '\''exec /opt/emulationstation/emulationstation 2> >(grep -v --line-buffered -E "ALSA lib|Error initializing SDL|kmsdrm not available|Renderer failed to initialize|Window failed to initialize" >&2)'\'''
 else
     log "设定 systemd 服务：以 $GAME_USER 自动登入 tty1 并启动 EmulationStation（KMSDRM）"
     EXEC_START='/opt/emulationstation/emulationstation'
