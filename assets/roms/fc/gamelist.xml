@@ -3,7 +3,7 @@
     <game>
         <path>./240pee.nes</path>
         <name>240p Test Suite</name>
-        <desc>240p 测试套件（240p Test Suite）是一套免费开源的画面/声音测试程式，专为老式 CRT 电视与各类模拟器、扫描线转换器设计，可用来检测画面几何、过扫描范围、色彩、音讯延迟等项目。本机搭载的 v0.23 NES 版由 Damian Yerrick（pinobatch）依据 Artemio Urbina 的原始构想制作，以 GNU GPL v2 或更新版本授权发布，可自由使用与散布。首次开机若尚未放入任何游戏 ROM，可先执行本测试程式确认画面输出与控制器是否正常。</desc>
+        <desc>240p 测试套件（240p Test Suite）是一款免费开源的画面/声音测试程式，专为老式 CRT 电视与各类模拟器、扫描线转换器设计，用来检测画面几何、过扫描范围、色彩、音讯延迟等项目。v0.23 NES 版由 Damian Yerrick（pinobatch）依据 Artemio Urbina 原始构想制作，可自由使用与散布。</desc>
         <image>./media/images/240pee.png</image>
         <releasedate>20230101T000000</releasedate>
         <developer>Damian Yerrick (pinobatch)</developer>
