@@ -46,6 +46,13 @@ DPAD_MAP = {
 # SDL hat 方向位标记
 HAT_DIR = {1: "up", 2: "right", 4: "down", 8: "left"}
 
+# ES 按键名 -> RetroArch 即时存档/读档热键（与 X/Y 共用同一颗实体按键，
+# 避免 retroarch.cfg 中写死的按钮编号在更换手柄后对应到错误的按键）
+SAVE_LOAD_STATE_MAP = {
+    "x": "input_save_state_btn",
+    "y": "input_load_state_btn",
+}
+
 
 def guid_to_vendor_product(guid):
     try:
@@ -83,6 +90,8 @@ def convert_device(input_config, out_dir):
 
         if name in BUTTON_MAP:
             lines.append('%s = "%s"' % (BUTTON_MAP[name], iid))
+            if name in SAVE_LOAD_STATE_MAP:
+                lines.append('%s = "%s"' % (SAVE_LOAD_STATE_MAP[name], iid))
         elif name in AXIS_MAP:
             if itype == "axis":
                 sign = "+" if int(value) >= 0 else "-"
