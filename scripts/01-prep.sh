@@ -43,7 +43,14 @@ install -o root -g root -m 0755 "$ASSETS_DIR/scripts/emuelec-utils" /usr/bin/emu
 
 log "部署 ALSA 软件音量控制配置（启用 ES 音量设置菜单）"
 fetch_asset "configs/asound.conf"
-install -o root -g root -m 0644 "$ASSETS_DIR/configs/asound.conf" /etc/asound.conf
+# 不同板型 HDMI 音频对应的 ALSA card 编号不同（如 MD1000 是 0、RK3318-Box 是 1），
+# 透过 aplay -l 自动侦测，找不到则预设 0
+HDMI_CARD="$(aplay -l 2>/dev/null | sed -n 's/^card \([0-9]*\):.*HDMI.*/\1/p' | head -n1)"
+HDMI_CARD="${HDMI_CARD:-0}"
+log "侦测到 HDMI 音频输出为 card $HDMI_CARD"
+sed "s/__CARD__/$HDMI_CARD/g" "$ASSETS_DIR/configs/asound.conf" > /etc/asound.conf
+chown root:root /etc/asound.conf
+chmod 0644 /etc/asound.conf
 
 log "授予 ping 命令 cap_net_raw 权限（ES 以 game 一般用户检测网络连通性需要用到）"
 setcap cap_net_raw+ep /bin/ping 2>/dev/null || setcap cap_net_raw+ep "$(command -v ping)"
