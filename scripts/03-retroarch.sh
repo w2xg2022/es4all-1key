@@ -116,5 +116,3 @@ systemctl enable smbd
 systemctl restart smbd
 
 log "阶段 3 完成"
-log "备注：字体修正路径为 $FONT_DIR，若 MD1000 测试后发现 RetroArch 仍显示乱码，"
-log "      表示实际选单字型路径不同，需要在这支脚本中调整 FONT_DIR。"
