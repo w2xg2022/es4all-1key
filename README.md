@@ -26,6 +26,7 @@ curl -fsSL https://raw.githubusercontent.com/w2xg2022/es4armbian-1key/main/es4ar
 | 品牌 | 型号 | 芯片 | 内存+闪存 | Armbian 固件 | 测试结果 |
 | --- | --- | --- | --- | --- | --- |
 | 浪潮 | MD1000 | RK3566 | 2+32 | Armbian_26.05.0_rockchip_md1000_<br>trixie_6.18.33_server_2026.06.01.img.gz | 通过 |
+| 通用 | RK3318-Box | RK3328 | 1+8 | Armbian_community_26.8.0-trunk.170_<br>Rk3318-box_trixie_current_6.18.35.img.xz | 通过（开机画面） |
 
 ## 各阶段说明
 
@@ -37,8 +38,12 @@ curl -fsSL https://raw.githubusercontent.com/w2xg2022/es4armbian-1key/main/es4ar
 - 部署 ALSA 软件音量控制（启用 ES 音量设置菜单），并为 `ping` 赋予 `cap_net_raw` 权限
 
 ### 阶段 2：隐藏开机跑码（`02-bootsplash.sh`）
-- 修改 `armbianEnv.txt`（`verbosity=0`、`bootlogo=false`，并加入 `splash`、`plymouth.ignore-serial-consoles` 等参数）
-- 套用自定 Plymouth armbian 主题开机画面并重建 initramfs
+- 修改 `armbianEnv.txt`（`verbosity=0`，并加入 `splash`、`plymouth.ignore-serial-consoles` 等参数）
+- 依 `/etc/armbian-release` 自动判断固件来源并套用对应方案：
+  - **ophub**（如 MD1000）：`bootlogo=false`，沿用预装的 Plymouth `armbian` 主题，只替换其 `watermark.png`
+  - **community**（标准 Armbian，如 RK3318-Box）：`bootlogo=true`，建立自定 `es4armbian` Plymouth 主题（全屏显示 `watermark.png`）
+- 重建 initramfs（含 uInitrd 转换），使开机画面在早期阶段即接管画面
+- 若环境无 `armbianEnv.txt`（如 devmfc/debian-on-amlogic），此阶段暂不支援，自动跳过
 
 ### 阶段 3：部署 RetroArch（`03-retroarch.sh`）
 - 安装 RetroArch 及所选平台对应 core，套用简体中文界面与 SELECT 组合键热键（即时存档/读档/退出游戏）
