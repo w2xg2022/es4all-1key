@@ -73,7 +73,7 @@ XBOX 360 / XBOX 360 Compatible 手柄
 ## 素材 (`assets/`)
 
 - `watermark.png`：1080p 开机画面（256 色，~556KB），用于 Plymouth armbian 主题
-- `configs/asound.conf`：ALSA 软件音量控制设定（启用 ES 音量设置菜单，`amixer -c0 sset PCM <百分比>%` 可调节音量）
+- `configs/asound.conf`：ALSA 软件音量控制设定模板（`01-prep.sh` 部署时自动侦测 HDMI 音频对应的 card 编号并替换，启用 ES 音量设置菜单，`amixer sset PCM <百分比>%` 可调节音量）
 - `scripts/batocera-wifi`、`batocera-config`、`batocera-bluetooth`：网络/蓝牙设置兼容脚本（同时部署到 `/usr/local/bin/` 与 `/usr/bin/batocera/`，供 `isScriptingSupported()` 硬编码路径检测）
 - `scripts/emuelec-utils`：避免 ES 与 RetroArch 切换时跳出 "not found" 错误信息的兼容脚本
 - `scripts/es-input-to-retroarch.py`：将 ES 手柄设定（`es_input.cfg`）转换为 RetroArch autoconfig 的脚本
