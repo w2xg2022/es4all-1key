@@ -31,10 +31,10 @@ curl -fsSL https://raw.githubusercontent.com/w2xg2022/es4armbian-1key/main/es4ar
 </thead>
 <tbody>
 <tr>
-<td nowrap>浪潮</td><td nowrap>MD1000</td><td nowrap>RK3566</td><td nowrap>2+32</td><td><sub>Armbian_26.05.0_rockchip_md1000_trixie_6.18.33_server_2026.06.01.img.gz</sub></td><td nowrap>通过</td>
+<td nowrap>浪潮</td><td nowrap>MD1000</td><td nowrap>RK3566</td><td nowrap>2+32</td><td style="word-break:break-all">Armbian_26.05.0_rockchip_md1000_trixie_6.18.33_server_2026.06.01.img.gz</td><td nowrap>通过</td>
 </tr>
 <tr>
-<td nowrap>贝尔</td><td nowrap>S-010W-AV2B</td><td nowrap>RK3228H</td><td nowrap>1+8</td><td><sub>Armbian_community_26.8.0-trunk.170_Rk3318-box_trixie_current_6.18.35_minimal.img.xz</sub></td><td nowrap>通过</td>
+<td nowrap>贝尔</td><td nowrap>S-010W-AV2B</td><td nowrap>RK3228H</td><td nowrap>1+8</td><td style="word-break:break-all">Armbian_community_26.8.0-trunk.170_Rk3318-box_trixie_current_6.18.35_minimal.img.xz</td><td nowrap>通过</td>
 </tr>
 </tbody>
 </table>
