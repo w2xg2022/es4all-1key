@@ -68,7 +68,7 @@ declare -A PLATFORM_ESNAME=(
     [fbneo]="fbneo"
     [dos]="pc"
     [dc]="dreamcast"
-    [apple2]="apple"
+    [apple2]="apple2"
     [n64]="n64"
     [psp]="psp"
     [gbc]="gbc"
@@ -104,7 +104,7 @@ declare -A PLATFORM_ROMDIR=(
     [fbneo]="fbneo"
     [dos]="pc"
     [dc]="dreamcast"
-    [apple2]="apple"
+    [apple2]="apple2"
     [n64]="n64"
     [psp]="psp"
     [gbc]="gbc"
@@ -116,16 +116,6 @@ declare -A PLATFORM_ROMDIR=(
 # 未列出的平台沿用 PLATFORM_ESNAME 作为主题目录名
 declare -A PLATFORM_THEME=(
     [fbneo]="fbn"
-    [apple2]="apple2"
-)
-
-# es_systems.cfg 的 <platform> 标签（供刮削器辨识系统）与 PLATFORM_ESNAME
-# 不一致的平台：ES 的 PlatformId.cpp 只认得 "apple2" 这个 platform id，
-# 不认得 "apple"，但 ROM 目录/<name> 改用 EmuELEC 惯例的 "apple" 后两者会
-# 不一致，因此需要保留 <platform> 为 "apple2" 才能正常刮削。
-# 未列出的平台沿用 PLATFORM_ESNAME 作为 <platform> 标签
-declare -A PLATFORM_ID=(
-    [apple2]="apple2"
 )
 
 # 默认安装的 14 个平台（已在 MD1000 上逐一验证可正常进入游戏）。

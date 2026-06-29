@@ -57,7 +57,7 @@ backup_once "$ES_HOME_CFG/es_systems.cfg"
         echo "        <path>$GAME_HOME/ROMs/${romdir}</path>"
         echo "        <extension>${PLATFORM_EXT[$code]}</extension>"
         echo "        <command>retroarch -L $GAME_HOME/.config/retroarch/cores/${PLATFORM_CORE[$code]} %ROM%</command>"
-        echo "        <platform>${PLATFORM_ID[$code]:-$esname}</platform>"
+        echo "        <platform>${esname}</platform>"
         echo "        <theme>${PLATFORM_THEME[$code]:-$esname}</theme>"
         echo "    </system>"
     done
