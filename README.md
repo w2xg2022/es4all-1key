@@ -83,6 +83,10 @@ XBOX 360 / XBOX 360 Compatible 手柄
 
 > 语系透传：进游戏时会自动把 EmulationStation 的界面语言同步给 RetroArch（简中 / 繁中 / 英文等），RetroArch 菜单不再固定英文。
 
+## 手柄按键位置对齐（Remap）
+
+游戏内 ABXY 采用**实体按键位置对齐**而非字母对齐：手柄下方键固定对应 RetroPad B（PS 手柄为叉/✕）、右方键对应 A（圈/○）、左方键对应 X（方块/□）、上方键对应 Y（三角/△），与真实 PlayStation / SNES 等主机手柄的按键位置手感一致。已对所有默认平台生成对应的 RetroArch remap 档案（`~/.config/retroarch/config/remaps/<core>/`），无需逐一手动设置。
+
 
 ## 素材 (`assets/`)
 

@@ -118,6 +118,26 @@ declare -A PLATFORM_THEME=(
     [fbneo]="fbn"
 )
 
+# libretro core 的显示名称（corename，来自各 xxx_libretro.info 的 corename 字段），
+# 对应 RetroArch remap 档案目录名：~/.config/retroarch/config/remaps/<corename>/<corename>.rmp
+declare -A PLATFORM_CORENAME=(
+    [fc]="Nestopia"
+    [sfc]="Snes9x"
+    [md]="Genesis Plus GX"
+    [gba]="mGBA"
+    [ps1]="PCSX-ReARMed"
+    [mame]="MAME 2003-Plus"
+    [fbneo]="FinalBurn Neo"
+    [dos]="DOSBox-pure"
+    [dc]="Flycast"
+    [apple2]="AppleWin"
+    [n64]="ParaLLEl N64"
+    [psp]="PPSSPP"
+    [gbc]="mGBA"
+    [saturn]="Yabause"
+    [pce]="Beetle PCE Fast"
+)
+
 # 默认安装的 14 个平台（已在 MD1000 上逐一验证可正常进入游戏）。
 # dc（Dreamcast/flycast）不在默认列表中：这台 RetroArch（Debian 官方 GLES-only 编译）
 # 不支援 flycast 要求的桌面 OpenGL/OpenGL Core 硬件上下文，
