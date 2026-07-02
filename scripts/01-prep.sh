@@ -58,6 +58,27 @@ setcap cap_net_raw+ep /bin/ping 2>/dev/null || setcap cap_net_raw+ep "$(command 
 ensure_game_user
 set_game_password "$GAME_PASSWORD"
 
+log "部署 CPU performance governor 服务（模拟器音效对 CPU 调频延迟敏感，schedutil 动态降频会在音频解码尖峰时断音）"
+# RK3566 等 ARM 板默认 schedutil 会随负载动态变频，反应不够快时
+# 会饿死模拟器音频线程造成断音/沙沙声（尤其 PSP 的 ATRAC3+ 背景音乐解码）。
+# 锁 performance 让各核常驻满频，实测明显改善 PSP 等平台音效稳定度。
+cat > /etc/systemd/system/cpu-performance.service <<'EOF'
+[Unit]
+Description=Set CPU governor to performance (retro gaming)
+After=multi-user.target
+
+[Service]
+Type=oneshot
+ExecStart=/bin/sh -c 'for f in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor; do echo performance > "$f"; done'
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
+EOF
+systemctl daemon-reload
+systemctl enable cpu-performance.service
+systemctl start cpu-performance.service || warn "无法立即套用 performance governor（可能此平台不支持 cpufreq），已设开机自启"
+
 mkdir -p /tmp/es4armbian-1key
 
 # 仅支援 KMSDRM（非 X11）模式，需要 /dev/dri

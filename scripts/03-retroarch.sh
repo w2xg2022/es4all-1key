@@ -126,6 +126,25 @@ case " $PLATFORMS " in
     *" psp "*)
         log "PSP (ppsspp_libretro.so) 需要 libOpenGL.so.0，安装 libopengl0"
         apt-get install -y --no-install-recommends libopengl0
+
+        log "套用 PSP (PPSSPP) core 设定：frameskip=1 释放 CPU 余裕给 ATRAC3+ 背景音乐解码，关闭各向异性过滤减轻 Mali-G52 负担"
+        # 症状：带 ATRAC3+ 压缩背景音乐的 PSP 游戏（NBA Live、街霸 Alpha3 等）
+        # 进选单/游戏后音效断续、沙沙声，纯音效（无 BGM）时正常。
+        # 根因：音频同步绑在模拟速度上，ATRAC3+ 媒体引擎解码的 CPU 尖峰
+        # 让模拟掉到 100% 以下就断音。frameskip=1 每帧空出时间喂给解码，
+        # 实测 MD1000(RK3566) 上明显改善。各向异性 16x 对 Mali-G52 是纯浪费。
+        PSP_OPT_DIR="$RA_CFG_DIR/config/PPSSPP"
+        mkdir -p "$PSP_OPT_DIR"
+        cat > "$PSP_OPT_DIR/PPSSPP.opt" <<'EOF'
+ppsspp_frameskip = "1"
+ppsspp_auto_frameskip = "enabled"
+ppsspp_texture_anisotropic_filtering = "Off"
+ppsspp_lazy_texture_caching = "enabled"
+ppsspp_frame_duplication = "disabled"
+ppsspp_internal_resolution = "480x272"
+ppsspp_io_timing_method = "Fast"
+EOF
+        chown -R "$GAME_USER:$GAME_USER" "$PSP_OPT_DIR"
         ;;
 esac
 

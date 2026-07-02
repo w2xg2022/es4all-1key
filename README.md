@@ -47,6 +47,7 @@ curl -fsSL https://raw.githubusercontent.com/w2xg2022/es4armbian-1key/main/es4ar
 - 安装基础依赖（polkitd/pkexec、SDL2 mixer、NetworkManager、bluez 等），建立 `game` 用户
 - 部署 `batocera-wifi`/`batocera-config`/`batocera-bluetooth`/`emuelec-utils` 兼容脚本，使 ES 的网络/蓝牙设置菜单可用并消除游戏切换时的 "not found" 错误信息
 - 部署 ALSA 软件音量控制（启用 ES 音量设置菜单），并为 `ping` 赋予 `cap_net_raw` 权限
+- 部署 `cpu-performance.service` 锁 CPU 为 performance governor（模拟器音效对动态调频延迟敏感，schedutil 会在音频解码尖峰时断音）
 
 ### 阶段 2：隐藏开机跑码（`02-bootsplash.sh`）
 - 修改 `armbianEnv.txt`（`verbosity=0`，并加入 `splash`、`plymouth.ignore-serial-consoles` 等参数）
@@ -59,6 +60,7 @@ curl -fsSL https://raw.githubusercontent.com/w2xg2022/es4armbian-1key/main/es4ar
 - 安装 RetroArch 及所选平台对应 core，套用简体中文界面与 SELECT 组合键热键（即时存档/读档/退出游戏）
 - 修正菜单与 OSD 中文字体乱码，`audio_driver` 改为 `alsa`，并启用 Samba 供上传 ROM
 - 针对 N64/PSP 等平台套用专属兼容性修正（如 N64 改用 angrylion 软件渲染、PSP 补装 `libopengl0`），避免特定 core 启动崩溃
+- PSP（PPSSPP）额外套用 `frameskip=1`、关闭各向异性过滤等设定，改善带 ATRAC3+ 背景音乐游戏的音效断续（配合关闭 `video_hard_sync`）
 
 ### 阶段 4：部署 EmulationStation（`04-emulationstation.sh`）
 - 安装 EmulationStation 所需的动态库（libvlc 等），从 es4armbian Release 下载并部署到 `/opt/emulationstation`
