@@ -1,5 +1,5 @@
 #!/bin/bash
-# 阶段 4：部署 EmulationStation（从 es4armbian Release 下载，仅 KMSDRM 模式），
+# 阶段 4：部署 EmulationStation（从 es4all Release 下载，仅 KMSDRM 模式），
 # 并依所选平台动态产生 es_systems.cfg / es_settings.cfg。
 set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")"
@@ -10,7 +10,7 @@ require_root
 load_config
 ensure_game_user
 
-ES_RELEASE_URL="https://github.com/w2xg2022/es4armbian/releases/latest/download/emulationstation-armbian-aarch64.zip"
+ES_RELEASE_URL="https://github.com/w2xg2022/es4all/releases/latest/download/emulationstation-armbian-aarch64.zip"
 GAME_HOME="$(getent passwd "$GAME_USER" | cut -d: -f6)"
 ES_HOME_CFG="$GAME_HOME/.emulationstation"
 
@@ -19,18 +19,18 @@ export DEBIAN_FRONTEND=noninteractive
 apt-get update -y
 apt-get install -y --no-install-recommends libvlc5 libvlccore9
 
-log "下载 EmulationStation (es4armbian latest release)"
-TMPZIP="/tmp/es4armbian-1key/emulationstation.zip"
-mkdir -p /tmp/es4armbian-1key
+log "下载 EmulationStation (es4all latest release)"
+TMPZIP="/tmp/es4all-1key/emulationstation.zip"
+mkdir -p /tmp/es4all-1key
 curl -fsSL "$ES_RELEASE_URL" -o "$TMPZIP"
 
 log "部署到 /opt/emulationstation"
-rm -rf /tmp/es4armbian-1key/es-extract
-mkdir -p /tmp/es4armbian-1key/es-extract
-unzip -oq "$TMPZIP" -d /tmp/es4armbian-1key/es-extract
+rm -rf /tmp/es4all-1key/es-extract
+mkdir -p /tmp/es4all-1key/es-extract
+unzip -oq "$TMPZIP" -d /tmp/es4all-1key/es-extract
 
 # 若 zip 内有单一最上层目录（例如 emulationstation/），先把内容层级拉平
-SRC_DIR="/tmp/es4armbian-1key/es-extract"
+SRC_DIR="/tmp/es4all-1key/es-extract"
 entries=("$SRC_DIR"/*)
 if [ "${#entries[@]}" -eq 1 ] && [ -d "${entries[0]}" ]; then
     SRC_DIR="${entries[0]}"
@@ -74,12 +74,12 @@ THEME_NAME="es-theme-alekfull-EmueELEC"
 THEMES_DIR="$ES_HOME_CFG/themes"
 if [ ! -d "$THEMES_DIR/$THEME_NAME" ]; then
     log "下载主题 $THEME_NAME"
-    THEME_ZIP="/tmp/es4armbian-1key/${THEME_NAME}.zip"
+    THEME_ZIP="/tmp/es4all-1key/${THEME_NAME}.zip"
     curl -fsSL "https://github.com/EmuELEC/${THEME_NAME}/archive/refs/heads/master.zip" -o "$THEME_ZIP"
-    rm -rf /tmp/es4armbian-1key/theme-extract
-    mkdir -p /tmp/es4armbian-1key/theme-extract "$THEMES_DIR"
-    unzip -oq "$THEME_ZIP" -d /tmp/es4armbian-1key/theme-extract
-    cp -a "/tmp/es4armbian-1key/theme-extract/${THEME_NAME}-master" "$THEMES_DIR/$THEME_NAME"
+    rm -rf /tmp/es4all-1key/theme-extract
+    mkdir -p /tmp/es4all-1key/theme-extract "$THEMES_DIR"
+    unzip -oq "$THEME_ZIP" -d /tmp/es4all-1key/theme-extract
+    cp -a "/tmp/es4all-1key/theme-extract/${THEME_NAME}-master" "$THEMES_DIR/$THEME_NAME"
     rm -f "$THEME_ZIP"
     chown -R "$GAME_USER:$GAME_USER" "$THEMES_DIR"
 else

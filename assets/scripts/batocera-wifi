@@ -1,5 +1,5 @@
 #!/bin/bash
-# batocera-wifi 兼容脚本（es4armbian / NetworkManager 版本）
+# batocera-wifi 兼容脚本（es4all / NetworkManager 版本）
 # EmulationStation 通过此脚本判断 WIFI 功能是否可用，
 # 并调用 enable/disable/list/scanlist 子命令操作 Wi-Fi。
 # 基于 nmcli（NetworkManager），适用于 Armbian/Debian。

@@ -2,10 +2,10 @@
 # 所有阶段脚本共用的辅助函数。
 set -euo pipefail
 
-REPO_RAW_BASE="${REPO_RAW_BASE:-https://raw.githubusercontent.com/w2xg2022/es4armbian-1key/main}"
-ASSETS_DIR="${ASSETS_DIR:-/tmp/es4armbian-1key/assets}"
+REPO_RAW_BASE="${REPO_RAW_BASE:-https://raw.githubusercontent.com/w2xg2022/es4all-1key/main}"
+ASSETS_DIR="${ASSETS_DIR:-/tmp/es4all-1key/assets}"
 GAME_USER="${GAME_USER:-game}"
-CONFIG_FILE="${CONFIG_FILE:-/tmp/es4armbian-1key/config}"
+CONFIG_FILE="${CONFIG_FILE:-/tmp/es4all-1key/config}"
 
 log()  { printf '\033[1;32m[1key]\033[0m %s\n' "$*"; }
 warn() { printf '\033[1;33m[1key][警告]\033[0m %s\n' "$*"; }

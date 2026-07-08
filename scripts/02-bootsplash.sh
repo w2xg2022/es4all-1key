@@ -9,7 +9,7 @@
 #     bootlogo 必须维持 false——bootlogo=true 时 boot.cmd 会注入 ophub 专有的
 #     bootsplash.bootfile 机制，与 Plymouth 冲突。
 #   - 标准 Armbian community（如 RK3318/RK3228H）：预装 plymouth/plymouth-themes
-#     但没有 "armbian" 主题，改建立一个使用自定 watermark.png 的 es4armbian 主题；
+#     但没有 "armbian" 主题，改建立一个使用自定 watermark.png 的 es4all 主题；
 #     bootlogo 必须设为 true——标准 boot.cmd 只有 bootlogo=true 时才会在
 #     consoleargs 加入 "splash plymouth.ignore-serial-consoles"，否则会加入
 #     "splash=verbose" 让 Plymouth 进入除错模式、直接把文字印到画面上。
@@ -36,7 +36,7 @@ fi
 # 判断 Armbian 来源：
 #   - community（标准 Armbian，如 RK3318/RK3228H）：/etc/armbian-release 含
 #     VENDOR="Armbian_community"；预装 plymouth/plymouth-themes，但没有
-#     "armbian" 主题，需建立含自定 watermark.png 的 es4armbian 主题
+#     "armbian" 主题，需建立含自定 watermark.png 的 es4all 主题
 #   - ophub（如 MD1000）：预装 Plymouth "armbian" 主题（/usr/share/plymouth/themes/armbian），
 #     只需替换 watermark.png
 #   - 其余无法识别的来源：跳过阶段 2，留给阶段 3 继续
@@ -121,7 +121,7 @@ else
         apt-get update -qq
         apt-get install -y plymouth plymouth-themes
     fi
-    THEME_NAME="es4armbian"
+    THEME_NAME="es4all"
     THEME_DIR="/usr/share/plymouth/themes/$THEME_NAME"
     log "建立自订 Plymouth 主题 $THEME_NAME（全屏显示自定开机画面 watermark.png）"
     mkdir -p "$THEME_DIR"
@@ -129,7 +129,7 @@ else
     cat > "$THEME_DIR/$THEME_NAME.plymouth" <<EOF
 [Plymouth Theme]
 Name=$THEME_NAME
-Description=es4armbian custom boot splash
+Description=es4all custom boot splash
 ModuleName=script
 
 [script]

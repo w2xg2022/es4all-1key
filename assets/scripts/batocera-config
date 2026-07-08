@@ -1,5 +1,5 @@
 #!/bin/bash
-# batocera-config 兼容脚本（es4armbian / Armbian 版本）
+# batocera-config 兼容脚本（es4all / Armbian 版本）
 # 仅实现 EmulationStation 会用到的子命令；目前主要用于 wifi enable/disable
 # （转发给 batocera-wifi），其余子命令为占位实现避免报错。
 set -euo pipefail

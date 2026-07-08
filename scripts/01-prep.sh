@@ -79,7 +79,7 @@ systemctl daemon-reload
 systemctl enable cpu-performance.service
 systemctl start cpu-performance.service || warn "无法立即套用 performance governor（可能此平台不支持 cpufreq），已设开机自启"
 
-mkdir -p /tmp/es4armbian-1key
+mkdir -p /tmp/es4all-1key
 
 # 仅支援 KMSDRM（非 X11）模式，需要 /dev/dri
 if [ -e /dev/dri/card0 ] || [ -e /dev/dri/card1 ]; then

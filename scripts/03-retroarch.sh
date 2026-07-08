@@ -57,7 +57,7 @@ log "部署 RA 启动包装脚本（把 ES 选定的语系透传给 RetroArch）
 RA_LAUNCH="/usr/local/bin/es4a-ra-launch"
 cat > "$RA_LAUNCH" <<'EOF'
 #!/bin/bash
-# ES 语系 -> RetroArch user_language 透传启动器（由 es4armbian-1key 部署）
+# ES 语系 -> RetroArch user_language 透传启动器（由 es4all-1key 部署）
 ES_SETTINGS="$HOME/.emulationstation/es_settings.cfg"
 RA_CFG="$HOME/.config/retroarch/retroarch.cfg"
 lang="$(sed -n 's/.*name="Language" value="\([^"]*\)".*/\1/p' "$ES_SETTINGS" 2>/dev/null | head -n1)"
@@ -115,7 +115,7 @@ for code in $PLATFORMS; do
     fi
     [ -f "$RA_CFG_DIR/cores/$core" ] && continue
     log "下载 $core"
-    tmpzip="/tmp/es4armbian-1key/${core}.zip"
+    tmpzip="/tmp/es4all-1key/${core}.zip"
     curl -fsSL "$CORE_BUILDBOT_BASE/${core}.zip" -o "$tmpzip"
     unzip -oq "$tmpzip" -d "$RA_CFG_DIR/cores"
     rm -f "$tmpzip"

@@ -21,9 +21,9 @@ else
     EXEC_START='/opt/emulationstation/emulationstation'
 fi
 
-cat > /etc/systemd/system/es4armbian.service <<EOF
+cat > /etc/systemd/system/es4all.service <<EOF
 [Unit]
-Description=es4armbian EmulationStation (KMSDRM)
+Description=es4all EmulationStation (KMSDRM)
 After=systemd-user-sessions.service getty@tty1.service
 Conflicts=getty@tty1.service
 
@@ -43,10 +43,10 @@ RestartSec=2
 WantedBy=graphical.target
 EOF
 
-log "启用 es4armbian.service（开机自动进入 EmulationStation）"
+log "启用 es4all.service（开机自动进入 EmulationStation）"
 systemctl daemon-reload
-systemctl enable es4armbian.service
+systemctl enable es4all.service
 
 log "阶段 5 完成"
 log "提示：请重启测试（reboot）。若要先在桌面测试，可手动执行："
-log "      systemctl start es4armbian.service"
+log "      systemctl start es4all.service"

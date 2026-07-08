@@ -1,10 +1,10 @@
 #!/bin/bash
-# es4armbian-1key 一键安装脚本
-# 用法: curl -fsSL https://raw.githubusercontent.com/w2xg2022/es4armbian-1key/main/es4armbian-1key.sh | sudo bash
+# es4all-1key 一键安装脚本
+# 用法: curl -fsSL https://raw.githubusercontent.com/w2xg2022/es4all-1key/main/es4all-1key.sh | sudo bash
 set -euo pipefail
 
-REPO_RAW_BASE="${REPO_RAW_BASE:-https://raw.githubusercontent.com/w2xg2022/es4armbian-1key/main}"
-WORKDIR="/tmp/es4armbian-1key"
+REPO_RAW_BASE="${REPO_RAW_BASE:-https://raw.githubusercontent.com/w2xg2022/es4all-1key/main}"
+WORKDIR="/tmp/es4all-1key"
 SCRIPT_DIR="$WORKDIR/scripts"
 CONFIG_FILE="$WORKDIR/config"
 
@@ -51,7 +51,7 @@ ask() {
 }
 
 echo ""
-echo "===== es4armbian-1key 安装设定 ====="
+echo "===== es4all-1key 安装设定 ====="
 
 HIDE_BOOTLOG="$(ask "1) 是否隐藏开机跑码画面？[Y/n]: " "y")"
 case "$HIDE_BOOTLOG" in

@@ -1,16 +1,16 @@
-# es4armbian-1key
+# es4all-1key
 
-一键将 Armbian 变身为复古游戏机（搭配 [es4armbian](https://github.com/w2xg2022/es4armbian)）。
+一键将 Armbian 变身为复古游戏机（搭配 [es4all](https://github.com/w2xg2022/es4all)）。
 
 ## 快速开始
 
 在 Armbian (aarch64) 上以 root 执行：
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/w2xg2022/es4armbian-1key/main/es4armbian-1key.sh | sudo bash
+curl -fsSL https://raw.githubusercontent.com/w2xg2022/es4all-1key/main/es4all-1key.sh | sudo bash
 ```
 
-只需这一个文件，其余各阶段脚本与素材会在执行时自动从本仓库下载到 `/tmp/es4armbian-1key/`。
+只需这一个文件，其余各阶段脚本与素材会在执行时自动从本仓库下载到 `/tmp/es4all-1key/`。
 
 执行时会依次询问以下设定（直接按 Enter 套用预设值即可）：
 
@@ -53,7 +53,7 @@ curl -fsSL https://raw.githubusercontent.com/w2xg2022/es4armbian-1key/main/es4ar
 - 修改 `armbianEnv.txt`（`verbosity=0`，并加入 `splash`、`plymouth.ignore-serial-consoles` 等参数）
 - 依 `/etc/armbian-release` 自动判断固件来源并套用对应方案：
   - **ophub**（如 MD1000）：`bootlogo=false`，沿用预装的 Plymouth `armbian` 主题，只替换其 `watermark.png`
-  - **community**（标准 Armbian，如 RK3318-Box）：`bootlogo=true`，建立自定 `es4armbian` Plymouth 主题（全屏显示 `watermark.png`）
+  - **community**（标准 Armbian，如 RK3318-Box）：`bootlogo=true`，建立自定 `es4all` Plymouth 主题（全屏显示 `watermark.png`）
 - 重建 initramfs（含 uInitrd 转换），使开机画面在早期阶段即接管画面
 
 ### 阶段 3：部署 RetroArch（`03-retroarch.sh`）
@@ -63,12 +63,12 @@ curl -fsSL https://raw.githubusercontent.com/w2xg2022/es4armbian-1key/main/es4ar
 - PSP（PPSSPP）额外套用 `frameskip=1`、关闭各向异性过滤等设定，改善带 ATRAC3+ 背景音乐游戏的音效断续（配合关闭 `video_hard_sync`）
 
 ### 阶段 4：部署 EmulationStation（`04-emulationstation.sh`）
-- 安装 EmulationStation 所需的动态库（libvlc 等），从 es4armbian Release 下载并部署到 `/opt/emulationstation`
+- 安装 EmulationStation 所需的动态库（libvlc 等），从 es4all Release 下载并部署到 `/opt/emulationstation`
 - 依所选平台生成 `es_systems.cfg`，套用简体中文 `es_settings.cfg`、部署主菜单背景音乐
 - 若选择 FC 平台且 ROM 目录为空，预置示范 ROM（240p Test Suite）
 
 ### 阶段 5：开机自动启动（`05-autostart.sh`）
-- 停用 tty1 的 getty，建立 `es4armbian.service`：以 `game` 用户自动登入 tty1，KMSDRM 模式启动 EmulationStation
+- 停用 tty1 的 getty，建立 `es4all.service`：以 `game` 用户自动登入 tty1，KMSDRM 模式启动 EmulationStation
 - 设定 `Restart=always`（异常退出自动重启）并启用开机自启
 
 ### 阶段 6：手柄热键同步（`06-controller-sync.sh`）

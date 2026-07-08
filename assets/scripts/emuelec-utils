@@ -1,5 +1,5 @@
 #!/bin/bash
-# emuelec-utils 兼容脚本（es4armbian / Armbian 版本）
+# emuelec-utils 兼容脚本（es4all / Armbian 版本）
 #
 # EmulationStation（_ENABLEEMUELEC 编译）在多处调用 /usr/bin/emuelec-utils，
 # 例如每次释放/重建音频时调用 `emuelec-utils audio alsa`。原版脚本依赖

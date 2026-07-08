@@ -1,5 +1,5 @@
 #!/bin/bash
-# batocera-bluetooth 兼容脚本（es4armbian / Armbian 版本）
+# batocera-bluetooth 兼容脚本（es4all / Armbian 版本）
 # 基于 bluetoothctl 实现 EmulationStation「控制器和蓝牙设置」所需的最小子命令集。
 set -euo pipefail
 
