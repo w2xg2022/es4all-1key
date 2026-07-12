@@ -35,12 +35,14 @@ emit_device() {
     else
         connected="no"
     fi
+    # ES 端(GuiBluetoothPair.cpp:76 / GuiBluetoothDevices.cpp:50)要求每行必须以
+    # "<device " 开头才会解析，否则整行原样当设备名显示（很难看）。务必包这层外壳。
     if [ "$mode" = "list" ]; then
-        printf 'id="%s" name="%s" type="%s" connected="%s"\n' "$mac" "$name" "$icon" "$connected"
+        printf '<device id="%s" name="%s" type="%s" connected="%s" />\n' "$mac" "$name" "$icon" "$connected"
     else
         local status=""
         [ "$connected" = "yes" ] && status="connected"
-        printf 'id="%s" name="%s" status="%s" type="%s"\n' "$mac" "$name" "$status" "$icon"
+        printf '<device id="%s" name="%s" status="%s" type="%s" />\n' "$mac" "$name" "$status" "$icon"
     fi
 }
 
