@@ -1,0 +1,52 @@
+#!/bin/bash
+# batocera-resolution 兼容脚本（es4all / Armbian 版本）
+#
+# EmulationStation（_ENABLEEMUELEC 编译）在「显示设置」等处调用
+# /usr/bin/batocera-resolution（例如 `batocera-resolution listModes`、
+# `batocera-resolution --screen "<name>" currentResolution`）。原版依赖
+# batocera 系统工具链，在 Armbian 上不存在，导致
+# "sh: 1: batocera-resolution: not found" 被打印到屏幕
+# （ES 切换 DRM master 时短暂可见）。
+#
+# 这里从 DRM connector 读取当前（首选）分辨率，实现少数会用到的子命令，
+# 其余静默返回成功，避免报错。KMSDRM 下不做实际改分辨率（noop）。
+set -uo pipefail
+
+# 去掉可选的 "--screen <name>" 前缀
+if [ "${1:-}" = "--screen" ]; then
+    shift 2 2>/dev/null || shift $#
+fi
+
+get_res() {
+    # 从已连接的 DRM connector 读首选模式（第一行通常即当前分辨率），如 1920x1080
+    for m in /sys/class/drm/*/modes; do
+        [ -s "$m" ] || continue
+        head -n1 "$m"
+        return
+    done
+    echo "1920x1080"
+}
+
+case "${1:-}" in
+    listModes)
+        r="$(get_res)"
+        echo "max-${r}:maximum ${r}"
+        echo "${r}:${r}"
+        ;;
+    currentMode)
+        echo "max-$(get_res)"
+        ;;
+    currentResolution)
+        get_res
+        ;;
+    setMode)
+        # KMSDRM 由内核/驱动决定，交互式改分辨率暂不支持，静默成功
+        exit 0
+        ;;
+    supportSystemRotation)
+        echo "false"
+        ;;
+    *)
+        exit 0
+        ;;
+esac

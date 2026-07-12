@@ -44,20 +44,18 @@ locale-gen zh_CN.UTF-8
 # 且与 LANGUAGE=zh_CN 冲突导致 update-locale 自动禁用 LANGUAGE。
 update-locale LANG=zh_CN.UTF-8 LC_MESSAGES=zh_CN.UTF-8 LANGUAGE=zh_CN:zh
 
-log "部署 batocera-wifi / batocera-config / batocera-bluetooth 兼容脚本（供 EmulationStation 网络与蓝牙设置使用）"
-fetch_asset "scripts/batocera-wifi"
-fetch_asset "scripts/batocera-config"
-fetch_asset "scripts/batocera-bluetooth"
-install -o root -g root -m 0755 "$ASSETS_DIR/scripts/batocera-wifi" /usr/local/bin/batocera-wifi
-install -o root -g root -m 0755 "$ASSETS_DIR/scripts/batocera-config" /usr/local/bin/batocera-config
-install -o root -g root -m 0755 "$ASSETS_DIR/scripts/batocera-bluetooth" /usr/local/bin/batocera-bluetooth
+log "部署 batocera-wifi / batocera-config / batocera-bluetooth / batocera-resolution 兼容脚本（供 EmulationStation 网络/蓝牙/显示设置使用）"
+for name in batocera-wifi batocera-config batocera-bluetooth batocera-resolution; do
+    fetch_asset "scripts/$name"
+    install -o root -g root -m 0755 "$ASSETS_DIR/scripts/$name" "/usr/local/bin/$name"
+done
 # ES 以 _ENABLEEMUELEC 编译，isScriptingSupported() 检查的是
 # /usr/bin/batocera/<name>（硬编码路径），故须额外部署一份到此处，
 # 否则「网络设置」「蓝牙设置」相关菜单不会出现。
 mkdir -p /usr/bin/batocera
-install -o root -g root -m 0755 "$ASSETS_DIR/scripts/batocera-wifi" /usr/bin/batocera/batocera-wifi
-install -o root -g root -m 0755 "$ASSETS_DIR/scripts/batocera-config" /usr/bin/batocera/batocera-config
-install -o root -g root -m 0755 "$ASSETS_DIR/scripts/batocera-bluetooth" /usr/bin/batocera/batocera-bluetooth
+for name in batocera-wifi batocera-config batocera-bluetooth batocera-resolution; do
+    install -o root -g root -m 0755 "$ASSETS_DIR/scripts/$name" "/usr/bin/batocera/$name"
+done
 
 log "部署 emuelec-utils 兼容脚本（避免 ES 与游戏切换时跳出 'not found' 错误）"
 fetch_asset "scripts/emuelec-utils"
