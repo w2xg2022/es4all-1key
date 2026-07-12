@@ -123,12 +123,16 @@ case "${1:-}" in
         bluetoothctl remove "${2:-}"  >/dev/null 2>&1
         ;;
     list)
-        # 已配对设备列表，按 ES 期望的 id="..." 格式输出
+        # 已配置设备列表，按 ES 期望的 id="..." 格式输出。
+        # 注意：过滤条件用 Trusted 或 Paired（对齐 EmuELEC do_list 的 Trusted=true）——
+        # 部分设备（如某些蓝牙鼠标）会「信任+连接」但不建立正式 Paired 绑定，
+        # 只按 Paired 过滤会漏掉它们，导致明明连着却不在已配对清单里。
         bt_up
-        { bluetoothctl devices Paired 2>/dev/null || bluetoothctl paired-devices 2>/dev/null; } \
-            | awk '/^Device /{print $2}' | while read -r mac; do
+        bluetoothctl devices 2>/dev/null | awk '/^Device /{print $2}' | while read -r mac; do
             [ -z "$mac" ] && continue
-            emit_device "$mac" list
+            if bluetoothctl info "$mac" 2>/dev/null | grep -qE '^[[:space:]]*(Trusted|Paired):[[:space:]]*yes'; then
+                emit_device "$mac" list
+            fi
         done
         ;;
     *)
