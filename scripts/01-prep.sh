@@ -30,19 +30,18 @@ ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
 echo "Asia/Shanghai" > /etc/timezone
 timedatectl set-timezone Asia/Shanghai 2>/dev/null || true
 
-log "生成并锁定预设系统语系为简体中文 (zh_CN.UTF-8)"
-# ES / RetroArch 各有内建语系(靠 es_settings / user_language)，但系统层(SSH/终端/
-# 系统消息)默认 en_US。生成并锁 zh_CN.UTF-8 让整机预设即简体中文。
-# 注意：只写入 /etc/default/locale 影响「后续」会话，本次安装仍在原语系下跑，不受影响。
+log "生成 zh_CN.UTF-8 locale（供 ES 菜单中文；不改系统默认语系）"
+# 关键：ES 菜单用 gettext 翻译，会依 es_settings 的 Language=zh_CN 调用
+# setlocale("zh_CN.UTF-8")。若系统没「生成」这个 locale，setlocale 失败 → ES
+# 退回英文（现象：ES 主菜单英文、但 RA 菜单仍简中，因 RA 用自带 user_language
+# 不靠 setlocale）。所以这里只需「生成」locale 让 setlocale 能成功即可。
+# ⚠️ 刻意不 update-locale：不改系统默认 LANG（保持 en_US，SSH/终端维持原样），
+#    仅让 zh_CN.UTF-8「可用」。ES 自己 setlocale 到中文，不牵动整机默认语系。
 if [ -f /etc/locale.gen ]; then
     sed -i 's/^# *\(zh_CN.UTF-8 UTF-8\)/\1/' /etc/locale.gen
     grep -q '^zh_CN.UTF-8 UTF-8' /etc/locale.gen || echo 'zh_CN.UTF-8 UTF-8' >> /etc/locale.gen
 fi
 locale-gen zh_CN.UTF-8
-# 显式覆盖 LC_MESSAGES：部分 Armbian 映像 /etc/default/locale 预置了
-# LC_MESSAGES=en_US.UTF-8，若不覆盖会盖过 LANG 让系统消息仍是英文，
-# 且与 LANGUAGE=zh_CN 冲突导致 update-locale 自动禁用 LANGUAGE。
-update-locale LANG=zh_CN.UTF-8 LC_MESSAGES=zh_CN.UTF-8 LANGUAGE=zh_CN:zh
 
 log "部署 batocera-wifi / batocera-config / batocera-bluetooth / batocera-resolution 兼容脚本（供 EmulationStation 网络/蓝牙/显示设置使用）"
 for name in batocera-wifi batocera-config batocera-bluetooth batocera-resolution; do
