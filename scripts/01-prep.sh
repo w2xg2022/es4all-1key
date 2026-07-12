@@ -21,7 +21,7 @@ apt-get install -y --no-install-recommends \
     network-manager \
     bluez \
     alsa-ucm-conf \
-    locales tzdata
+    tzdata
 
 log "锁定预设时区为 Asia/Shanghai (UTC+8)"
 # es4all 面向简体中文用户，统一锁 UTC+8；底层 Armbian 映像默认多为 Etc/UTC，
@@ -30,18 +30,8 @@ ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
 echo "Asia/Shanghai" > /etc/timezone
 timedatectl set-timezone Asia/Shanghai 2>/dev/null || true
 
-log "生成 zh_CN.UTF-8 locale（供 ES 菜单中文；不改系统默认语系）"
-# 关键：ES 菜单用 gettext 翻译，会依 es_settings 的 Language=zh_CN 调用
-# setlocale("zh_CN.UTF-8")。若系统没「生成」这个 locale，setlocale 失败 → ES
-# 退回英文（现象：ES 主菜单英文、但 RA 菜单仍简中，因 RA 用自带 user_language
-# 不靠 setlocale）。所以这里只需「生成」locale 让 setlocale 能成功即可。
-# ⚠️ 刻意不 update-locale：不改系统默认 LANG（保持 en_US，SSH/终端维持原样），
-#    仅让 zh_CN.UTF-8「可用」。ES 自己 setlocale 到中文，不牵动整机默认语系。
-if [ -f /etc/locale.gen ]; then
-    sed -i 's/^# *\(zh_CN.UTF-8 UTF-8\)/\1/' /etc/locale.gen
-    grep -q '^zh_CN.UTF-8 UTF-8' /etc/locale.gen || echo 'zh_CN.UTF-8 UTF-8' >> /etc/locale.gen
-fi
-locale-gen zh_CN.UTF-8
+# 注：ES 主菜单简体中文由 04-emulationstation.sh 写 system.conf 的 system.language=zh_CN
+# 决定（ES 用 gettext + LANGUAGE 选 .mo），不需生成/更改系统 locale，故此处不动 locale。
 
 log "部署 batocera-wifi / batocera-config / batocera-bluetooth / batocera-resolution 兼容脚本（供 EmulationStation 网络/蓝牙/显示设置使用）"
 for name in batocera-wifi batocera-config batocera-bluetooth batocera-resolution; do

@@ -70,12 +70,20 @@ backup_once "$ES_HOME_CFG/es_settings.cfg"
 install -o "$GAME_USER" -g "$GAME_USER" -m 0644 \
     "$ASSETS_DIR/emulationstation/es_settings.cfg" "$ES_HOME_CFG/es_settings.cfg"
 
-# EMUELEC 版 ES 会读写系统设定档 system.conf（batocera.conf 血统）。缺档时 ES 每隔
-# 数秒就打印一次 "Unable to open .../system.conf" 错误，并在存档时报错。预建空档即可。
-if [ ! -f "$ES_HOME_CFG/system.conf" ]; then
-    log "预建 system.conf（避免 EMUELEC 版 ES 反复报 Unable to open 错误）"
-    install -o "$GAME_USER" -g "$GAME_USER" -m 0644 /dev/null "$ES_HOME_CFG/system.conf"
+# system.conf（batocera.conf 血统）：ES 启动时的界面语言从这里的 system.language 读取
+# （不是 es_settings 的 Language！见 main.cpp setLocale → SystemConf::get("system.language")）。
+# 缺此键时 ES 退回环境变量 LANGUAGE（系统默认 en_US）→ 主菜单英文（RA 菜单不受影响，
+# 因 RA 用自带 user_language）。故写入 system.language=zh_CN 锁简体中文。
+# 顺带：预建此档也消除 ES 反复打印 "Unable to open .../system.conf" 的错误。
+SYSCONF="$ES_HOME_CFG/system.conf"
+log "写入 system.conf 的 system.language=zh_CN（ES 主菜单简体中文）"
+touch "$SYSCONF"
+if grep -q '^system.language=' "$SYSCONF"; then
+    sed -i 's/^system.language=.*/system.language=zh_CN/' "$SYSCONF"
+else
+    echo 'system.language=zh_CN' >> "$SYSCONF"
 fi
+chown "$GAME_USER:$GAME_USER" "$SYSCONF"
 
 THEME_NAME="es-theme-alekfull-EmueELEC"
 THEMES_DIR="$ES_HOME_CFG/themes"
