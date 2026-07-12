@@ -70,6 +70,13 @@ backup_once "$ES_HOME_CFG/es_settings.cfg"
 install -o "$GAME_USER" -g "$GAME_USER" -m 0644 \
     "$ASSETS_DIR/emulationstation/es_settings.cfg" "$ES_HOME_CFG/es_settings.cfg"
 
+# EMUELEC 版 ES 会读写系统设定档 system.conf（batocera.conf 血统）。缺档时 ES 每隔
+# 数秒就打印一次 "Unable to open .../system.conf" 错误，并在存档时报错。预建空档即可。
+if [ ! -f "$ES_HOME_CFG/system.conf" ]; then
+    log "预建 system.conf（避免 EMUELEC 版 ES 反复报 Unable to open 错误）"
+    install -o "$GAME_USER" -g "$GAME_USER" -m 0644 /dev/null "$ES_HOME_CFG/system.conf"
+fi
+
 THEME_NAME="es-theme-alekfull-EmueELEC"
 THEMES_DIR="$ES_HOME_CFG/themes"
 if [ ! -d "$THEMES_DIR/$THEME_NAME" ]; then
