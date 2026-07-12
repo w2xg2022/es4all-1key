@@ -85,12 +85,12 @@ exec "$@"
 EOF
 chmod 0755 "$RA_LAUNCH"
 
-log "部署手柄按键位置对齐 remap（比照实体手柄印刷位置，而非字母）"
-# 使用者的手柄按字母对应（物理A/B/X/Y -> RetroPad A/B/X/Y）在 PS/PSP 等
-# 有固定几何符号位置（圈=右/叉=下/三角=上/方块=左）的系统上，
-# 会因为符号位置与实体按键位置不一致而产生"按键跑掉"的错觉。
-# 用 per-core remap 把 RetroPad A/B、X/Y 互换，让物理按键的"位置"
-# 而非"字母"对齐 RetroPad，全平台统一手感（已在 MD1000 实测验证）。
+log "部署手柄按键位置对齐 remap（游戏内按物理位置，不按印刷字母）"
+# 前提：autoconfig 里面键已按物理位置固定编号（udev 语义码：南=0/东=1/北=2/西=3，
+# 见 es-input-to-retroarch.py），此时 RetroPad 几何为 A=东 B=南 X=北 Y=西。
+# PS 系核心符号：✕=RetroPad B、○=A、□=Y、△=X。不加 remap 时南键→RetroPad A→○(错，应✕)，
+# 所以只需把 A/B 互换即可让「南=✕、东=○」；X/Y（北=△、西=□）本就对齐，不能动。
+# 因为编号是位置锚定的，这一份 remap 任天堂/Xbox 手柄通吃（已在 MD1000 实测验证）。
 for code in $PLATFORMS; do
     corename="${PLATFORM_CORENAME[$code]:-}"
     [ -z "$corename" ] && continue
@@ -99,8 +99,6 @@ for code in $PLATFORMS; do
     cat > "$remap_dir/$corename.rmp" <<'EOF'
 input_player1_btn_a = "0"
 input_player1_btn_b = "8"
-input_player1_btn_x = "1"
-input_player1_btn_y = "9"
 EOF
 done
 chown -R "$GAME_USER:$GAME_USER" "$RA_CFG_DIR/config/remaps"

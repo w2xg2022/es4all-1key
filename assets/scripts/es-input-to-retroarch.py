@@ -53,6 +53,18 @@ SAVE_LOAD_STATE_MAP = {
     "y": "input_load_state_btn",
 }
 
+# 面键（A/B/X/Y）改「按物理位置」固定编号，不随手柄印刷/记录而变：
+# udev 驱动下 evdev 语义码是位置锚定的——btn0=南 btn1=东 btn2=北 btn3=西，
+# 不论手柄印 A 还是 B，南键永远是 btn0。这样游戏内键位「一份走天下」，
+# 任天堂/Xbox 印刷都不会歪；实际的位置翻转（南=✕ 等）交给 per-core remap 只翻 A/B。
+# 方向键、摇杆、L/R、select/start 仍照 ES 记录同步（这些确实因手柄而异）。
+FACE_BTN_POSITION = {
+    "a": "0",  # 南
+    "b": "1",  # 东
+    "x": "2",  # 北
+    "y": "3",  # 西
+}
+
 
 def guid_to_vendor_product(guid):
     try:
@@ -89,7 +101,10 @@ def convert_device(input_config, out_dir):
         value = inp.get("value")
 
         if name in BUTTON_MAP:
-            lines.append('%s = "%s"' % (BUTTON_MAP[name], iid))
+            # 面键按物理位置固定编号；其余按键照 ES 记录的实体按钮 id。
+            btn_val = FACE_BTN_POSITION.get(name, iid)
+            lines.append('%s = "%s"' % (BUTTON_MAP[name], btn_val))
+            # 存/读档热键仍绑「印刷 X/Y」实体按键（Layer 2 按印刷），用 ES 记录的 id。
             if name in SAVE_LOAD_STATE_MAP:
                 lines.append('%s = "%s"' % (SAVE_LOAD_STATE_MAP[name], iid))
         elif name in AXIS_MAP:

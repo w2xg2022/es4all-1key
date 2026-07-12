@@ -118,8 +118,11 @@ declare -A PLATFORM_THEME=(
     [fbneo]="fbn"
 )
 
-# libretro core 的显示名称（corename，来自各 xxx_libretro.info 的 corename 字段），
-# 对应 RetroArch remap 档案目录名：~/.config/retroarch/config/remaps/<corename>/<corename>.rmp
+# libretro core 的 remap 目录名。RA 找 per-core remap 时用的是核心 *运行时 library_name*，
+# 不是 .info 里的 corename——两者多半相同，但 applewin 例外（.info=小写 "applewin"，
+# library_name="AppleWin"），填错大小写 RA 会找不到而退回标签对齐 → 键位乱。
+# 下表已全部填 library_name（apple2=AppleWin），对应目录：
+#   ~/.config/retroarch/config/remaps/<library_name>/<library_name>.rmp
 declare -A PLATFORM_CORENAME=(
     [fc]="Nestopia"
     [sfc]="Snes9x"
