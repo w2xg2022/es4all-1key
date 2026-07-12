@@ -1,53 +1,139 @@
 #!/bin/bash
 # batocera-bluetooth 兼容脚本（es4all / Armbian 版本）
-# 基于 bluetoothctl 实现 EmulationStation「控制器和蓝牙设置」所需的最小子命令集。
-set -euo pipefail
+#
+# EmulationStation（es4all）通过 ApiSystem.cpp 调用本命令的一组 verb 来做蓝牙。
+# 各 verb 及 ES 期望的输出格式，均以 es4all 源码为准（三边共用同一份 ES）：
+#   - GuiBluetoothPair.cpp   解析 live_devices 每行：id="MAC" name="名" status="…" type="图标"
+#   - GuiBluetoothDevices.cpp 解析 list        每行：id="MAC" name="名" type="图标" connected="yes|no"
+# 本脚本用 bluetoothctl 实现，仅供 Armbian 使用；EmuELEC/ROCKNIX 各有自己的实作，互不影响。
+set -uo pipefail
 
-bt_ready() {
-    systemctl is-active --quiet bluetooth || systemctl start bluetooth
+STOPFLAG="/tmp/es4a-bt-livescan.stop"
+LOG="/tmp/es4a-bt.log"
+
+bt_up() {
+    systemctl is-active --quiet bluetooth || systemctl start bluetooth 2>/dev/null || true
     rfkill unblock bluetooth 2>/dev/null || true
+    bluetoothctl power on          >/dev/null 2>&1 || true
+    bluetoothctl agent on          >/dev/null 2>&1 || true
+    bluetoothctl default-agent     >/dev/null 2>&1 || true
+}
+
+# 读取单个设备的字段（name/icon/connected/paired）
+dev_field() { bluetoothctl info "$1" 2>/dev/null | sed -n "s/^[[:space:]]*$2:[[:space:]]*//p" | head -n1; }
+
+# 输出一行设备信息。$1=mac $2=模式(live|list)
+emit_device() {
+    local mac="$1" mode="$2" name icon connected
+    name="$(dev_field "$mac" Name)"
+    [ -z "$name" ] && name="$(dev_field "$mac" Alias)"
+    [ -z "$name" ] && name="$mac"
+    name="${name//\"/}"                       # 去掉可能破坏 id="..." 解析的引号
+    icon="$(dev_field "$mac" Icon)"
+    if bluetoothctl info "$mac" 2>/dev/null | grep -qE '^[[:space:]]*Connected:[[:space:]]*yes'; then
+        connected="yes"
+    else
+        connected="no"
+    fi
+    if [ "$mode" = "list" ]; then
+        printf 'id="%s" name="%s" type="%s" connected="%s"\n' "$mac" "$name" "$icon" "$connected"
+    else
+        local status=""
+        [ "$connected" = "yes" ] && status="connected"
+        printf 'id="%s" name="%s" status="%s" type="%s"\n' "$mac" "$name" "$status" "$icon"
+    fi
 }
 
 case "${1:-}" in
     enable)
-        bt_ready
-        bluetoothctl power on >/dev/null
+        bt_up
+        bluetoothctl power on >/dev/null 2>&1
         ;;
     disable)
         bluetoothctl power off >/dev/null 2>&1 || true
         ;;
-    status)
-        bt_ready
-        if bluetoothctl show | grep -q "Powered: yes"; then
-            echo "enabled"
+    live_devices)
+        # 持续扫描并把新发现的设备按 id="..." 格式串流给 ES（GuiBluetoothPair 逐行解析）。
+        # 直到 stop_live_devices 落下 STOPFLAG（或本进程被 ES 终止）为止。
+        bt_up
+        rm -f "$STOPFLAG"
+        # 后台持续扫描：bluetoothctl --timeout 有上限，结束就重启，直到收到停止信号
+        ( while [ ! -f "$STOPFLAG" ]; do bluetoothctl --timeout 30 scan on >/dev/null 2>&1; done ) &
+        SCAN_PID=$!
+        declare -A SEEN
+        while [ ! -f "$STOPFLAG" ]; do
+            while read -r mac; do
+                [ -z "$mac" ] && continue
+                [ -n "${SEEN[$mac]:-}" ] && continue
+                SEEN[$mac]=1
+                emit_device "$mac" live
+            done < <(bluetoothctl devices 2>/dev/null | awk '/^Device /{print $2}')
+            sleep 1
+        done
+        kill "$SCAN_PID" 2>/dev/null || true
+        pkill -P "$SCAN_PID" 2>/dev/null || true
+        ;;
+    stop_live_devices)
+        touch "$STOPFLAG"
+        pkill -f 'bluetoothctl.*scan' 2>/dev/null || true
+        ;;
+    trust)
+        # ES：pairBluetoothDevice → "trust <mac>"；scanNewBluetooth → "trust input"
+        arg="${2:-}"
+        bt_up
+        if [ "$arg" = "input" ]; then
+            # 自动配对模式：扫描 30s，凡输入类(手把)设备自动 trust+pair+connect
+            ( bluetoothctl --timeout 30 scan on >/dev/null 2>&1 ) &
+            end=$(( $(date +%s) + 30 ))
+            while [ "$(date +%s)" -lt "$end" ]; do
+                while read -r mac; do
+                    [ -z "$mac" ] && continue
+                    icon="$(dev_field "$mac" Icon)"
+                    case "$icon" in
+                        input-*|*gaming*|*joystick*|*gamepad*)
+                            if bluetoothctl info "$mac" 2>/dev/null | grep -qE '^[[:space:]]*Connected:[[:space:]]*yes'; then
+                                continue
+                            fi
+                            echo "found device $(dev_field "$mac" Name) ($mac)"
+                            bluetoothctl trust "$mac"   >/dev/null 2>&1
+                            bluetoothctl pair "$mac"    >/dev/null 2>&1
+                            bluetoothctl connect "$mac" >/dev/null 2>&1 && echo "connected $(dev_field "$mac" Name)"
+                            ;;
+                    esac
+                done < <(bluetoothctl devices 2>/dev/null | awk '/^Device /{print $2}')
+                sleep 2
+            done
+            pkill -f 'bluetoothctl.*scan' 2>/dev/null || true
         else
-            echo "disabled"
+            # 配对指定设备（ES 从 live_devices 列表选中后传入 mac）
+            bluetoothctl pair "$arg"    >/dev/null 2>&1
+            bluetoothctl trust "$arg"   >/dev/null 2>&1
+            bluetoothctl connect "$arg" >/dev/null 2>&1
         fi
         ;;
-    pair)
-        # pair <MAC>
-        bt_ready
-        bluetoothctl power on >/dev/null
-        bluetoothctl agent on >/dev/null 2>&1 || true
-        bluetoothctl pair "${2:-}" || true
-        bluetoothctl trust "${2:-}" || true
-        bluetoothctl connect "${2:-}" || true
+    connect)
+        bt_up
+        bluetoothctl connect "${2:-}" >/dev/null 2>&1
+        ;;
+    disconnect)
+        bluetoothctl disconnect "${2:-}" >/dev/null 2>&1
         ;;
     remove)
-        bluetoothctl remove "${2:-}" || true
+        bluetoothctl untrust "${2:-}" >/dev/null 2>&1 || true
+        bluetoothctl remove "${2:-}"  >/dev/null 2>&1
         ;;
-    list|paired)
-        bt_ready
-        bluetoothctl devices Paired 2>/dev/null || bluetoothctl paired-devices 2>/dev/null || true
-        ;;
-    scan)
-        bt_ready
-        bluetoothctl power on >/dev/null
-        timeout 10 bluetoothctl scan on >/dev/null 2>&1 || true
-        bluetoothctl devices
+    list)
+        # 已配对设备列表，按 ES 期望的 id="..." 格式输出
+        bt_up
+        { bluetoothctl devices Paired 2>/dev/null || bluetoothctl paired-devices 2>/dev/null; } \
+            | awk '/^Device /{print $2}' | while read -r mac; do
+            [ -z "$mac" ] && continue
+            emit_device "$mac" list
+        done
         ;;
     *)
-        echo "Usage: batocera-bluetooth {enable|disable|status|pair <MAC>|remove <MAC>|list|scan}" >&2
+        echo "Usage: batocera-bluetooth {enable|disable|live_devices|stop_live_devices|trust <mac>|trust input|connect <mac>|disconnect <mac>|remove <mac>|list}" >&2
         exit 1
         ;;
 esac
+exit 0
