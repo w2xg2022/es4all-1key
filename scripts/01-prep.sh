@@ -39,7 +39,10 @@ if [ -f /etc/locale.gen ]; then
     grep -q '^zh_CN.UTF-8 UTF-8' /etc/locale.gen || echo 'zh_CN.UTF-8 UTF-8' >> /etc/locale.gen
 fi
 locale-gen zh_CN.UTF-8
-update-locale LANG=zh_CN.UTF-8 LANGUAGE=zh_CN:zh
+# 显式覆盖 LC_MESSAGES：部分 Armbian 映像 /etc/default/locale 预置了
+# LC_MESSAGES=en_US.UTF-8，若不覆盖会盖过 LANG 让系统消息仍是英文，
+# 且与 LANGUAGE=zh_CN 冲突导致 update-locale 自动禁用 LANGUAGE。
+update-locale LANG=zh_CN.UTF-8 LC_MESSAGES=zh_CN.UTF-8 LANGUAGE=zh_CN:zh
 
 log "部署 batocera-wifi / batocera-config / batocera-bluetooth 兼容脚本（供 EmulationStation 网络与蓝牙设置使用）"
 fetch_asset "scripts/batocera-wifi"
