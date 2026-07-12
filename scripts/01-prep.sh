@@ -20,7 +20,26 @@ apt-get install -y --no-install-recommends \
     fontconfig \
     network-manager \
     bluez \
-    alsa-ucm-conf
+    alsa-ucm-conf \
+    locales tzdata
+
+log "锁定预设时区为 Asia/Shanghai (UTC+8)"
+# es4all 面向简体中文用户，统一锁 UTC+8；底层 Armbian 映像默认多为 Etc/UTC，
+# 不显式设定会让存档时间戳、金手指/成就时间等整机差 8 小时。
+ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+echo "Asia/Shanghai" > /etc/timezone
+timedatectl set-timezone Asia/Shanghai 2>/dev/null || true
+
+log "生成并锁定预设系统语系为简体中文 (zh_CN.UTF-8)"
+# ES / RetroArch 各有内建语系(靠 es_settings / user_language)，但系统层(SSH/终端/
+# 系统消息)默认 en_US。生成并锁 zh_CN.UTF-8 让整机预设即简体中文。
+# 注意：只写入 /etc/default/locale 影响「后续」会话，本次安装仍在原语系下跑，不受影响。
+if [ -f /etc/locale.gen ]; then
+    sed -i 's/^# *\(zh_CN.UTF-8 UTF-8\)/\1/' /etc/locale.gen
+    grep -q '^zh_CN.UTF-8 UTF-8' /etc/locale.gen || echo 'zh_CN.UTF-8 UTF-8' >> /etc/locale.gen
+fi
+locale-gen zh_CN.UTF-8
+update-locale LANG=zh_CN.UTF-8 LANGUAGE=zh_CN:zh
 
 log "部署 batocera-wifi / batocera-config / batocera-bluetooth 兼容脚本（供 EmulationStation 网络与蓝牙设置使用）"
 fetch_asset "scripts/batocera-wifi"
