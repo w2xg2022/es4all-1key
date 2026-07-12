@@ -2,7 +2,10 @@
 # core 档案直接从 libretro buildbot (aarch64 nightly) 下载，避免 apt 套件名称/版本不一致问题
 CORE_BUILDBOT_BASE="https://buildbot.libretro.com/nightly/linux/aarch64/latest"
 
-PLATFORM_CODES=(fc sfc md gba ps1 mame fbneo dos dc apple2 n64 psp gbc saturn pce)
+# 注：dc（Dreamcast）暂不列入选单——buildbot flycast 默认请求桌面 OpenGL，被本机
+# GLES-only RetroArch 拒绝（详见下方 DEFAULT_PLATFORMS 注释）。dc 的各项定义仍保留在
+# 下方各表中，待自编 USE_GLES flycast 后，把 dc 加回本行即可重新出现在安装选单。
+PLATFORM_CODES=(fc sfc md gba ps1 mame fbneo dos apple2 n64 psp gbc saturn pce)
 
 declare -A PLATFORM_NAME=(
     [fc]="FC / 红白机 (Nintendo)"
