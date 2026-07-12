@@ -13,7 +13,7 @@ declare -A PLATFORM_NAME=(
     [mame]="MAME (街机, mame2003-plus)"
     [fbneo]="FBNeo (街机/Neo Geo)"
     [dos]="DOS (经典电脑游戏)"
-    [dc]="DC / 世嘉 (Sega Dreamcast)"
+    [dc]="DC / 世嘉 (Sega Dreamcast) [需自编 GLES flycast，见下方说明]"
     [apple2]="Apple II (苹果二代)"
     [n64]="N64 (Nintendo 64)"
     [psp]="PSP (PlayStation Portable)"
@@ -141,11 +141,11 @@ declare -A PLATFORM_CORENAME=(
     [pce]="Beetle PCE Fast"
 )
 
-# 默认安装的 15 个平台。
-# dc（Dreamcast/flycast）：libretro buildbot 的 flycast core 已内建 GLES3 代码路径
-# (二进制里同时含 #version 300/320 es 着色器与 TARGET_GL==GLES3 分支)，
-# 运行时会依前端提供的上下文协商——GLES-only 的 Debian RetroArch 下走 GLES3，
-# 不再受限于「必须桌面 OpenGL」。故重新纳入默认列表。
-# ⚠️ 需实机确认：若前端只给 GLES2 则 Naomi 2 类会被挡；个别机型若无法协商到 GLES3
-#    可再从此清单移除 dc。
-DEFAULT_PLATFORMS="fc sfc md gba ps1 mame fbneo dos apple2 n64 psp gbc saturn pce dc"
+# 默认安装的 14 个平台（已在 MD1000 上逐一验证可正常进入游戏）。
+# dc（Dreamcast/flycast）不在默认列表——2026-07-12 MD1000(RK3566) 实测确认：
+# libretro buildbot 的 flycast core 虽内含 GLES 着色器，但其 retro_get_preferred_hw_render
+# 默认请求 *桌面 OpenGL* 上下文，被 Debian GLES-only 编译的 RetroArch 直接拒绝：
+#   "Requesting OpenGL context, but RetroArch is compiled against OpenGLES. Cannot use HW context."
+# 核心无 GL/GLES renderer 切换选项；Vulkan 路径也无（板子无 Vulkan ICD）。
+# 唯一解=自编 USE_GLES=ON 的 flycast core（让其请求 GLES 上下文）。待编译验证后再纳入。
+DEFAULT_PLATFORMS="fc sfc md gba ps1 mame fbneo dos apple2 n64 psp gbc saturn pce"
