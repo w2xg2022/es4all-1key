@@ -88,6 +88,18 @@ systemctl daemon-reload
 systemctl enable cpu-performance.service
 systemctl start cpu-performance.service || warn "无法立即套用 performance governor（可能此平台不支持 cpufreq），已设开机自启"
 
+log "授予 $GAME_USER 写入 CPU 调速器 sysfs 的权限（ES「CPU调速器」选单需要当场切换）"
+# scaling_governor 默认 root:root 0644，而 ES 以 $GAME_USER 运行 → 在选单里切换会 Permission denied。
+# 用 systemd-tmpfiles 的 z（调整既有档案的权限/拥有者，支援万用字元），开机自动套用。
+# 不用其他做法的原因：给 sudo 权限过大；让 ES 跑 root 会把 ~/.asoundrc、retroarch.cfg 写到 /root；
+# root 的 oneshot service 只在开机套一次，选单里当场切换仍然无效。
+# ES 侧已备妥（ApiSystem::isCpuGovernorSettable() 探到可写就显示该选单），不需重编。
+cat > /etc/tmpfiles.d/es4all.conf <<EOF
+z /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor 0664 root $GAME_USER
+EOF
+systemd-tmpfiles --create /etc/tmpfiles.d/es4all.conf \
+    || warn "systemd-tmpfiles 套用失败，ES 的 CPU 调速器选单可能无法切换"
+
 mkdir -p /tmp/es4all-1key
 
 # 仅支援 KMSDRM（非 X11）模式，需要 /dev/dri
