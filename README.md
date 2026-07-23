@@ -45,7 +45,7 @@ curl -fsSL https://raw.githubusercontent.com/w2xg2022/es4all-1key/main/es4all-1k
 > ⚠️ MD1000 的 Releases 里另有 `md1000-kexec` 变体（供 kexec 双系统用），本脚本请取**不带 `-kexec`** 的一般版。
 >
 > 最后验证过的版本（仅供追溯，非必须）：
-> - MD1000：`Armbian_26.08.0_rockchip_md1000_trixie_6.18.37_server_2026.07.01.img.gz`
+> - MD1000：`Armbian_26.08.0_rockchip_md1000_trixie_6.18.39_server_2026.07.22.img.gz`
 > - S-010W-AV2B：`Armbian_community_26.8.0-trunk.170_Rk3318-box_trixie_current_6.18.35_minimal.img.xz`
 
 ## 各阶段说明
