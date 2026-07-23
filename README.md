@@ -26,18 +26,27 @@ curl -fsSL https://raw.githubusercontent.com/w2xg2022/es4all-1key/main/es4all-1k
 <table>
 <thead>
 <tr>
-<th nowrap>品牌</th><th nowrap>型号</th><th nowrap>芯片</th><th nowrap>RAM+ROM</th><th>Armbian 固件</th>
+<th nowrap>品牌</th><th nowrap>型号</th><th nowrap>芯片</th><th nowrap>RAM+ROM</th><th>Armbian 固件下载</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td nowrap>浪潮</td><td nowrap>MD1000</td><td nowrap>RK3566</td><td nowrap>2+32</td><td><a href="https://github.com/w2xg2022/armbian/releases/download/Armbian_trixie_arm64_server_2026.07/Armbian_26.08.0_rockchip_md1000_trixie_6.18.37_server_2026.07.01.img.gz">Armbian_26.08.0_rockchip_md1000_trixie_6.18.37_<br>server_2026.07.01.img.gz</a></td>
+<td nowrap>浪潮</td><td nowrap>MD1000</td><td nowrap>RK3566</td><td nowrap>2+32</td><td><a href="https://github.com/w2xg2022/armbian/releases/latest">前往 Releases</a>，取最新的<br><code>Armbian_*_rockchip_md1000_trixie_*_server_*.img.gz</code></td>
 </tr>
 <tr>
-<td nowrap>贝尔</td><td nowrap>S-010W-AV2B</td><td nowrap>RK3228H</td><td nowrap>1+8</td><td>Armbian_community_26.8.0&#8209;trunk.170_Rk3318&#8209;box_<br>trixie_current_6.18.35_minimal.img.xz</td>
+<td nowrap>贝尔</td><td nowrap>S-010W-AV2B</td><td nowrap>RK3228H</td><td nowrap>1+8</td><td><a href="https://www.armbian.com/rk3318-box/">Armbian RK3318&#8209;box 下载页</a><br>或到 <a href="https://github.com/armbian/community/releases">community releases</a> 搜 <code>Rk3318&#8209;box</code></td>
 </tr>
 </tbody>
 </table>
+
+> **固件版本不必与我们测试的完全一致**：上表给的是长期有效的下载入口，按檔名规律取**最新版**即可。
+> 固件会持续更新（内核版本、日期、trunk 编号都在变），所以这里不再钉死具体檔名与 tag。
+>
+> ⚠️ MD1000 的 Releases 里另有 `md1000-kexec` 变体（供 kexec 双系统用），本脚本请取**不带 `-kexec`** 的一般版。
+>
+> 最后验证过的版本（仅供追溯，非必须）：
+> - MD1000：`Armbian_26.08.0_rockchip_md1000_trixie_6.18.37_server_2026.07.01.img.gz`
+> - S-010W-AV2B：`Armbian_community_26.8.0-trunk.170_Rk3318-box_trixie_current_6.18.35_minimal.img.xz`
 
 ## 各阶段说明
 
