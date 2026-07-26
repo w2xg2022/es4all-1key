@@ -18,9 +18,12 @@ GAME_USER="${GAME_USER:-game}"
 GAME_HOME="$(getent passwd "$GAME_USER" 2>/dev/null | cut -d: -f6)"
 [ -z "$GAME_HOME" ] && GAME_HOME="/home/$GAME_USER"
 
-# 从 /dev/tty 读取输入（支援 curl ... | sudo bash 情境）
+# 从 /dev/tty 读取输入（支援 curl ... | sudo bash 情境）。
+# 注意：/dev/tty 这个装置节点即使在无控制终端时也「存在且权限可读写」，
+# 用 [ -r ] 判断会误判为可用 → 之后 read 会报 "No such device or address"。
+# 必须实际试着打开它才准。
 TTY="/dev/tty"
-if [ ! -r "$TTY" ] || [ ! -w "$TTY" ]; then
+if ! { : <"$TTY"; } 2>/dev/null; then
     TTY=""
 fi
 ask() {
@@ -87,8 +90,7 @@ log "还原 Plymouth 开机画面"
 if [ -d /usr/share/plymouth/themes/es4all ]; then
     rm -rf /usr/share/plymouth/themes/es4all
     if command -v plymouth-set-default-theme >/dev/null 2>&1; then
-        # 直接列主题目录（不依赖 --list 旗标是否支援），挑一个非 es4all 的当默认
-        other="$(for d in /usr/share/plymouth/themes/*/; do b=$(basename "$d"); [ "$b" = es4all ] || { [ -f "$d$b.plymouth" ] && echo "$b" && break; }; done)"
+        other="$(plymouth-set-default-theme --list 2>/dev/null | grep -vx es4all | head -n1)"
         [ -n "$other" ] && plymouth-set-default-theme -R "$other" >/dev/null 2>&1 || true
     fi
 fi
@@ -111,7 +113,7 @@ fi
 # ---- 6. Samba：停用共享服务并移除 game 的 smb 帐号 ----
 log "移除 Samba 共享设定"
 smbpasswd -x "$GAME_USER" >/dev/null 2>&1 || true
-systemctl restart smbd >/dev/null 2>&1 || true
+systemctl disable --now smbd >/dev/null 2>&1 || true
 
 # ---- 7. 移除专属套件（保留系统通用套件）----
 log "移除专属套件（retroarch / samba / libvlc；保留 bluez/network-manager/plymouth 等通用件）"
