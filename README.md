@@ -54,7 +54,7 @@ curl -fsSL https://raw.githubusercontent.com/w2xg2022/es4all-1key/main/es4all-1k
 
 ### 阶段 1：环境检测与共用依赖（`01-prep.sh`）
 - 安装基础依赖（polkitd/pkexec、SDL2 mixer、NetworkManager、bluez 等），建立 `game` 用户
-- 部署 `batocera-wifi`/`batocera-config`/`batocera-bluetooth`/`emuelec-utils` 兼容脚本，使 ES 的网络/蓝牙设置菜单可用并消除游戏切换时的 "not found" 错误信息
+- 部署 `batocera-wifi`/`batocera-config`/`batocera-bluetooth`/`batocera-resolution`/`emuelec-utils` 兼容脚本，使 ES 的网络/蓝牙/显示设置菜单可用并消除游戏切换时的 "not found" 错误信息
 - 部署 ALSA 软件音量控制（启用 ES 音量设置菜单），并为 `ping` 赋予 `cap_net_raw` 权限
 - 部署 `cpu-performance.service` 锁 CPU 为 performance governor（模拟器音效对动态调频延迟敏感，schedutil 会在音频解码尖峰时断音）
 
@@ -91,6 +91,7 @@ XBOX 360 / XBOX 360 Compatible 手柄
 - SELECT+R1（右肩键）：保存即时存档
 - SELECT+L1（左肩键）：读取即时存档
 - SELECT+X（左侧面键）：呼出 RetroArch 菜单
+- SELECT+Y（上方面键）：切换帧率（FPS）显示
 
 > 语系透传：进游戏时会自动把 EmulationStation 的界面语言同步给 RetroArch（简中 / 繁中 / 英文等），RetroArch 菜单不再固定英文。
 
@@ -117,20 +118,37 @@ XBOX 360 / XBOX 360 Compatible 手柄
 
 ## 素材 (`assets/`)
 
-- `watermark.png`：1080p 开机画面（256 色，~556KB），用于 Plymouth armbian 主题
+- `watermark.png`：1080p 开机画面（~556KB），用作 Plymouth 开机主题的背景图
 - `configs/asound.conf`：ALSA 软件音量控制设定模板（`01-prep.sh` 部署时自动侦测 HDMI 音频对应的 card 编号并替换，启用 ES 音量设置菜单，`amixer sset PCM <百分比>%` 可调节音量）
-- `scripts/batocera-wifi`、`batocera-config`、`batocera-bluetooth`：网络/蓝牙设置兼容脚本（同时部署到 `/usr/local/bin/` 与 `/usr/bin/batocera/`，供 `isScriptingSupported()` 硬编码路径检测）
+- `scripts/batocera-wifi`、`batocera-config`、`batocera-bluetooth`、`batocera-resolution`：网络/蓝牙/显示设置兼容脚本（同时部署到 `/usr/local/bin/` 与 `/usr/bin/batocera/`，供 `isScriptingSupported()` 硬编码路径检测）
 - `scripts/emuelec-utils`：避免 ES 与 RetroArch 切换时跳出 "not found" 错误信息的兼容脚本
 - `scripts/es-input-to-retroarch.py`：将 ES 手柄设定（`es_input.cfg`）转换为 RetroArch autoconfig 的脚本
-- `retroarch/retroarch.cfg`：预设简体中文界面、SELECT+R1/SELECT+L1 即时存档与读档、SELECT+START 退出游戏、SELECT+X 呼出菜单、`audio_driver = alsa`
+- `retroarch/retroarch.cfg`：预设简体中文界面、SELECT+R1/SELECT+L1 即时存档与读档、SELECT+START 退出游戏、SELECT+X 呼出菜单、SELECT+Y 切换帧率、`audio_driver = alsa`
 - `fonts/regular.ttf`、`fonts/bold.ttf`：修正 RetroArch xmb 主题菜单与 OSD 中文字体乱码
 - `emulationstation/es_systems.cfg`、`es_settings.cfg`：各平台对应 RetroArch core 路径与简体中文预设值
 - `music/famicommunist-manifesto.ogg`：ES 主菜单背景音乐（CC0 授权，出自 OpenGameArt Fakebit/Chiptune Music Pack）
 - `roms/fc/240pee.nes`、`gamelist.xml`、`media/images/240pee.png`：FC 平台示范 ROM（240p Test Suite v0.23，GNU GPL v2+ 授权）
 
-## 还原
+## 更新 / 还原
 
-各阶段脚本修改的文件都会留下 `.orig` 备份，例如：
+### 一键反安装（推荐）
+
+撤销 es4all-1key 对系统的更改：停用并移除服务、删除相容脚本与 ES 本体、从 `.orig`
+备份还原被修改的系统文件、复原开机画面、移除专属套件。在 Armbian 上以 root 执行：
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/w2xg2022/es4all-1key/main/es4all-1key-uninstall.sh | sudo bash
+```
+
+- `game` 用户与家目录（含 **ROMs、游戏存档**）默认**保留**，执行时会询问是否一并删除。
+- 移除专属套件（retroarch / samba / libvlc）；保留系统通用套件（bluez / network-manager /
+  plymouth 等），避免牵动其他功能。
+- 时区、系统 locale、`ping` 的 cap_net_raw 权限刻意不动（无害）。
+- 完成后建议 `reboot`，让开机画面/终端等更改完全生效。
+
+### 手动还原单个文件
+
+各阶段脚本在修改文件前都会留下 `.orig` 备份，可单独还原，例如：
 
 ```bash
 mv /boot/armbianEnv.txt.orig /boot/armbianEnv.txt

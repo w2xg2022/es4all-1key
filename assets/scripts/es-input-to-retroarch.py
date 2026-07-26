@@ -46,11 +46,14 @@ DPAD_MAP = {
 # SDL hat 方向位标记
 HAT_DIR = {1: "up", 2: "right", 4: "down", 8: "left"}
 
-# ES 按键名 -> RetroArch 即时存档/读档热键（与 X/Y 共用同一颗实体按键，
-# 避免 retroarch.cfg 中写死的按钮编号在更换手柄后对应到错误的按键）
-SAVE_LOAD_STATE_MAP = {
-    "x": "input_save_state_btn",
-    "y": "input_load_state_btn",
+# ES 按键名 -> RetroArch 热键：绑到「印刷/实体按键」，避免 retroarch.cfg 写死的
+# 按钮编号在更换手柄后对应到错误的按键。意图（对齐 EmuELEC controller-guide）：
+#   SELECT+R1 = 存档 / SELECT+L1 = 读档 / SELECT+X = 呼出 RA 菜单 / SELECT+Y = 切换帧率
+HOTKEY_MAP = {
+    "rightshoulder": "input_save_state_btn",
+    "leftshoulder":  "input_load_state_btn",
+    "x":             "input_menu_toggle_btn",
+    "y":             "input_fps_toggle_btn",
 }
 
 # 面键（A/B/X/Y）改「按物理位置」固定编号，不随手柄印刷/记录而变：
@@ -104,9 +107,9 @@ def convert_device(input_config, out_dir):
             # 面键按物理位置固定编号；其余按键照 ES 记录的实体按钮 id。
             btn_val = FACE_BTN_POSITION.get(name, iid)
             lines.append('%s = "%s"' % (BUTTON_MAP[name], btn_val))
-            # 存/读档热键仍绑「印刷 X/Y」实体按键（Layer 2 按印刷），用 ES 记录的 id。
-            if name in SAVE_LOAD_STATE_MAP:
-                lines.append('%s = "%s"' % (SAVE_LOAD_STATE_MAP[name], iid))
+            # 热键绑到「印刷/实体按键」（Layer 2 按印刷），用 ES 记录的实体 id。
+            if name in HOTKEY_MAP:
+                lines.append('%s = "%s"' % (HOTKEY_MAP[name], iid))
         elif name in AXIS_MAP:
             if itype == "axis":
                 sign = "+" if int(value) >= 0 else "-"
