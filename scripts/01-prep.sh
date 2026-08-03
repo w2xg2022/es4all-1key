@@ -21,7 +21,15 @@ apt-get install -y --no-install-recommends \
     network-manager \
     bluez \
     alsa-ucm-conf \
-    tzdata
+    tzdata \
+    fuse3 util-linux python3 exfatprogs ntfs-3g
+# 上面最后一行是「内外盘聚合」要用的（见 07-profiles.sh / 05-autostart.sh）：
+#   fuse3      mergerfs 是 FUSE 层的 union，没有它挂不起来
+#   util-linux blkid —— 选单列碟、脚本解析 LABEL 都靠它
+#   python3    gamelist 合并脚本
+#   exfatprogs / ntfs-3g  多数人的 ROM 碟是在 Windows 上格式化的
+# ★mergerfs 不用装★：Debian 源里没有这包，我们用 es4all-profiles 下发的那颗
+#   静态连结 aarch64 二进位（static-pie，零依赖，三个发行版共用同一份）。
 
 log "锁定预设时区为 Asia/Shanghai (UTC+8)"
 # es4all 面向简体中文用户，统一锁 UTC+8；底层 Armbian 映像默认多为 Etc/UTC，
@@ -99,6 +107,27 @@ z /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor 0664 root $GAME_USER
 EOF
 systemd-tmpfiles --create /etc/tmpfiles.d/es4all.conf \
     || warn "systemd-tmpfiles 套用失败，ES 的 CPU 调速器选单可能无法切换"
+
+log "开启 FUSE 的 user_allow_other（内外盘聚合需要）"
+# mergerfs 挂载时带 allow_other，让 ES/RetroArch（以 $GAME_USER 跑）看得到 root 挂上来的
+# 合并结果。没开这个选项，挂载会直接失败，症状是「聚合设了但游戏还是只有内盘那些」。
+if [ -f /etc/fuse.conf ]; then
+    backup_once /etc/fuse.conf
+    if grep -q '^#\?user_allow_other' /etc/fuse.conf; then
+        sed -i 's/^#\?user_allow_other.*/user_allow_other/' /etc/fuse.conf
+    else
+        echo 'user_allow_other' >> /etc/fuse.conf
+    fi
+else
+    echo 'user_allow_other' > /etc/fuse.conf
+fi
+
+log "把 $GAME_USER 加入 disk 群组（ES 列举外接盘要用 blkid）"
+# ES 的「外接挂载选项」是以 $GAME_USER 身分呼叫 blkid 列出各碟的 LABEL，
+# 而 blkid 要直接读区块装置 —— 一般使用者读不到就**列不出任何碟**，
+# 选单永远只剩「内部存储」一项，而且不会有任何错误讯息。
+# （挂载本身是 root 做的，见 05-autostart.sh 的 ExecStartPre；这里只为了「看得到」。）
+usermod -aG disk "$GAME_USER"
 
 mkdir -p /tmp/es4all-1key
 

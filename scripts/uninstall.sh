@@ -57,6 +57,22 @@ for svc in es4all.service cpu-performance.service es-controller-sync.path es-con
     rm -f "/etc/systemd/system/$svc"
 done
 
+# ---- 1b. 拆掉内外盘聚合的挂载 ----
+# ★必须在删家目录之前、而且顺序由上往下★：ROMs 上那层是 mergerfs 的 bind，
+# 底下还叠着外接盘与内盘的 bind。没拆就往下走，最糟的情况是「删家目录」
+# 删到的是**合并视图**，等于连使用者外接盘上的游戏一起删。
+log "拆除内外盘聚合的挂载"
+for mp in "$GAME_HOME/ROMs" "$GAME_HOME/.es4all-roms/merged" \
+          "$GAME_HOME/games-external" "$GAME_HOME/games-internal"; do
+    umount "$mp" 2>/dev/null || true
+done
+# 保险：ROMs 上可能叠了不只一层（重复套用过），拆到不是挂载点为止（最多 5 次）
+for _ in 1 2 3 4 5; do
+    awk -v p="$GAME_HOME/ROMs" '$2 == p { f = 1 } END { exit !f }' /proc/mounts || break
+    umount "$GAME_HOME/ROMs" 2>/dev/null || break
+done
+rmdir "$GAME_HOME/games-external" "$GAME_HOME/games-internal" 2>/dev/null || true
+
 # ---- 2. 还原 tty1 自动登入（安装时 disable 了 getty@tty1）----
 log "重新启用 getty@tty1（恢复 tty1 登入终端）"
 systemctl enable getty@tty1.service >/dev/null 2>&1 || true
@@ -83,6 +99,15 @@ log "还原被修改的系统设定档"
 restore_or_remove /boot/armbianEnv.txt          # verbosity/bootlogo/extraargs
 restore_or_remove /etc/samba/smb.conf           # [ROMs] 共享
 restore_or_remove /etc/asound.conf yes          # 安装未备份，属新建 → 删除
+restore_or_remove /etc/fuse.conf                # user_allow_other（聚合用）
+
+# 安装时建的 ~/.config/emulationstation -> ~/.emulationstation 符号连结。
+# ★只删连结本身、绝不能用 rm -rf★：跟着它走会把 ES 的真实设定目录（含键位、
+# 主题、gamelist）整个清掉，而使用者选了「保留家目录」。
+[ -L "$GAME_HOME/.config/emulationstation" ] && rm -f "$GAME_HOME/.config/emulationstation"
+
+# 把 game 从 disk 群组移出（安装时为了让 ES 能用 blkid 列碟才加的）
+gpasswd -d "$GAME_USER" disk >/dev/null 2>&1 || true
 
 # ---- 5. 还原开机画面（Plymouth）----
 log "还原 Plymouth 开机画面"

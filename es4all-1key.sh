@@ -25,7 +25,7 @@ if [ -n "$SELF_DIR" ] && [ -f "$SELF_DIR/scripts/00-common.sh" ]; then
     SCRIPT_DIR="$SELF_DIR/scripts"
 else
     echo "[1key] 下载安装脚本..."
-    for f in 00-common.sh platforms.sh 01-prep.sh 02-bootsplash.sh 03-retroarch.sh 04-emulationstation.sh 05-autostart.sh 06-controller-sync.sh; do
+    for f in 00-common.sh platforms.sh 01-prep.sh 02-bootsplash.sh 03-retroarch.sh 04-emulationstation.sh 05-autostart.sh 07-profiles.sh; do
         curl -fsSL "$REPO_RAW_BASE/scripts/$f" -o "$SCRIPT_DIR/$f"
     done
     chmod +x "$SCRIPT_DIR"/*.sh
@@ -118,7 +118,11 @@ bash "$SCRIPT_DIR/02-bootsplash.sh"
 bash "$SCRIPT_DIR/03-retroarch.sh"
 bash "$SCRIPT_DIR/04-emulationstation.sh"
 bash "$SCRIPT_DIR/05-autostart.sh"
-bash "$SCRIPT_DIR/06-controller-sync.sh"
+# ★放在最后★：它要把机型专属配置落到 game 家目录，前面的阶段得先把使用者与
+# ~/.emulationstation 建好；apply.sh 也会读 ES 的设定档。
+# 注：原本的阶段 6（手柄键位同步）已移除，键位透传现在整条来自 es4all-profiles，
+#     由本阶段下发。见 07-profiles.sh 档首。
+bash "$SCRIPT_DIR/07-profiles.sh"
 
 echo "[1key] 全部完成！建议执行 'reboot' 重启，开机后将自动进入 EmulationStation。"
 echo "[1key] Samba 已启用，可用 game / $GAME_PASSWORD 上传 ROM 到 \\\\<装置IP>\\ROMs"

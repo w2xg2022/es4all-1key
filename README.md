@@ -80,9 +80,15 @@ curl -fsSL https://raw.githubusercontent.com/w2xg2022/es4all-1key/main/es4all-1k
 - 停用 tty1 的 getty，建立 `es4all.service`：以 `game` 用户自动登入 tty1，KMSDRM 模式启动 EmulationStation
 - 设定 `Restart=always`（异常退出自动重启）并启用开机自启
 
-### 阶段 6：手柄热键同步（`06-controller-sync.sh`）
-- 将 ES「手柄和蓝牙设置」中配置好的手柄按键（`es_input.cfg`）转换为 RetroArch autoconfig，使手柄在 RetroArch / 各游戏核心中可直接使用
-- 通过 systemd path 单元监听 `es_input.cfg`，在 ES 中重新设置手柄后自动重新生成配置
+### 阶段 7：机型专属配置首次下载（`07-profiles.sh`）
+- 从 [es4all-profiles](https://github.com/w2xg2022/es4all-profiles) 下载本机型专属的配置与脚本，按 `common` → `armbian/_common` → `armbian/<DEVICE>/_common` → `armbian/<DEVICE>/<机型>` 四层依序套用（后者覆盖前者），最后执行一次 `apply.sh`
+- 之后的更新由 ES 自己同步；本阶段只负责「第一份」——内外盘聚合用的 mergerfs 与键位透传的转换器都由 profiles 下发，不先拉一次的话首次开机这两个功能都是空的
+- **键位透传**（ES 手柄设定 → RetroArch autoconfig）现在整条来自 profiles：转换器与 `controls-changed` 钩子都由本阶段下发。原本自带一份转换器 + systemd path 监听的阶段 6 已移除，避免两条路同时写 autoconfig、两份转换器版本迟早分岔
+
+### 内外盘聚合（外接盘与内部存储合并）
+- 在 ES「平台设置 → 外部挂载选项」里选一颗外接盘，即代表该盘与内部存储**合并**，两边的游戏一起显示；选「内部存储」则只用内建的
+- 用 mergerfs（FUSE 层的 union）而非 overlayfs——多数人的 ROM 盘是在 Windows 上格式化的 FAT/exFAT，而 overlayfs 连拿它当 lowerdir 都会被内核拒绝
+- 挂载由 `es4all.service` 的 `ExecStartPre` 以 root 执行；在选单里切换后整机重开即重新套用
 
 ## 手柄热键默认值
 
@@ -122,7 +128,6 @@ XBOX 360 / XBOX 360 Compatible 手柄
 - `configs/asound.conf`：ALSA 软件音量控制设定模板（`01-prep.sh` 部署时自动侦测 HDMI 音频对应的 card 编号并替换，启用 ES 音量设置菜单，`amixer sset PCM <百分比>%` 可调节音量）
 - `scripts/batocera-wifi`、`batocera-config`、`batocera-bluetooth`、`batocera-resolution`：网络/蓝牙/显示设置兼容脚本（同时部署到 `/usr/local/bin/` 与 `/usr/bin/batocera/`，供 `isScriptingSupported()` 硬编码路径检测）
 - `scripts/emuelec-utils`：避免 ES 与 RetroArch 切换时跳出 "not found" 错误信息的兼容脚本
-- `scripts/es-input-to-retroarch.py`：将 ES 手柄设定（`es_input.cfg`）转换为 RetroArch autoconfig 的脚本
 - `retroarch/retroarch.cfg`：预设简体中文界面、SELECT+R1/SELECT+L1 即时存档与读档、SELECT+START 退出游戏、SELECT+X 呼出菜单、SELECT+Y 切换帧率、`audio_driver = alsa`
 - `fonts/regular.ttf`、`fonts/bold.ttf`：修正 RetroArch xmb 主题菜单与 OSD 中文字体乱码
 - `emulationstation/es_systems.cfg`、`es_settings.cfg`：各平台对应 RetroArch core 路径与简体中文预设值
