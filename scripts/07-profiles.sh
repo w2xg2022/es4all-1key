@@ -121,7 +121,15 @@ apply_scope() {
             continue
         fi
         mkdir -p "$root"
-        cp -a "$token"/. "$root"/
+        # ★不能用 cp -a★（2026-08-04 实机踩过）：上面那个
+        # ~/.config/emulationstation -> ~/.emulationstation 符号连结，会让
+        # `cp -a storage-config/. ~/.config/` 直接失败：
+        #   cp: cannot overwrite non-directory '…/.config/./emulationstation' with directory
+        # cp 把「目的地是个符号连结」当成非目录，不肯拿目录盖上去。
+        # tar 的 --keep-directory-symlink 正是为这情形而生：遇到指向目录的连结就
+        # **穿过它**写进真实目录，而不是把连结换掉。且任何深度都适用，
+        # 不必逐层特判（日后再加别的连结也不会重蹈覆辙）。
+        tar -C "$token" -cf - . | tar -C "$root" --keep-directory-symlink -xf -
         # ★落在 bin/ 的档要补执行位★：消费端一律用 [ -x ] 判断，
         # 少了执行位会静默走回内建实作，表现是「下发成功但完全没效果」。
         [ "$name" = "bin" ] && chmod -R a+rx "$root" 2>/dev/null || true
