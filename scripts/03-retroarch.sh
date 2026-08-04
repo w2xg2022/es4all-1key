@@ -85,23 +85,28 @@ exec "$@"
 EOF
 chmod 0755 "$RA_LAUNCH"
 
-log "部署手柄按键位置对齐 remap（游戏内按物理位置，不按印刷字母）"
-# 前提：autoconfig 里面键已按物理位置固定编号（udev 语义码：南=0/东=1/北=2/西=3，
-# 见 es-input-to-retroarch.py），此时 RetroPad 几何为 A=东 B=南 X=北 Y=西。
-# PS 系核心符号：✕=RetroPad B、○=A、□=Y、△=X。不加 remap 时南键→RetroPad A→○(错，应✕)，
-# 所以只需把 A/B 互换即可让「南=✕、东=○」；X/Y（北=△、西=□）本就对齐，不能动。
-# 因为编号是位置锚定的，这一份 remap 任天堂/Xbox 手柄通吃（已在 MD1000 实测验证）。
-for code in $PLATFORMS; do
-    corename="${PLATFORM_CORENAME[$code]:-}"
-    [ -z "$corename" ] && continue
-    remap_dir="$RA_CFG_DIR/config/remaps/$corename"
-    mkdir -p "$remap_dir"
-    cat > "$remap_dir/$corename.rmp" <<'EOF'
-input_player1_btn_a = "0"
-input_player1_btn_b = "8"
-EOF
-done
-chown -R "$GAME_USER:$GAME_USER" "$RA_CFG_DIR/config/remaps"
+# ★不再产生 A/B 互换的 remap —— 它会把已经对齐的键位再翻回去★(2026-08-04 实机查证)
+#
+# 旧注解写着「不加 remap 时南键→RetroPad A→○(错，应✕)，所以要把 A/B 互换」，
+# 那个前提**是错的**。转换器(es-input-to-retroarch.sh，随 es4all-profiles 下发)
+# 产生的 autoconfig 是按物理位置写死的：
+#     input_a_btn="1"(东)  input_b_btn="0"(南)  input_x_btn="2"(北)  input_y_btn="3"(西)
+# 而 RetroPad 的几何本来就是 A=东、B=南、X=北、Y=西 —— ★这一层已经是位置对齐了★。
+# PS 系核心符号 ✕=RetroPad B、○=A，所以【不加 remap】按南键就是 ✕，正是配方要的结果。
+# 再叠一层 A/B 互换等于翻第二次：南键变 ○、东键变 ✕，刚好全反。
+#
+# 键位透传改由 profiles 的转换器接手(位置锚定)之后，这份 remap 就从「修正」变成
+# 「破坏」。删掉即可，位置对齐由 autoconfig 一层完成。
+#
+# 升级路径：旧版装过的机器上留着这些 .rmp 会继续生效，所以要主动清掉。
+if [ -d "$RA_CFG_DIR/config/remaps" ]; then
+    log "清除旧版的 A/B 互换 remap（位置对齐已由 autoconfig 完成，再翻一次会全反）"
+    find "$RA_CFG_DIR/config/remaps" -name '*.rmp' \
+        -exec grep -l 'input_player1_btn_a = "0"' {} + 2>/dev/null | while read -r f; do
+        rm -f "$f"
+    done
+    find "$RA_CFG_DIR/config/remaps" -type d -empty -delete 2>/dev/null || true
+fi
 
 log "从 libretro buildbot 下载所选平台的 core：$PLATFORMS"
 mkdir -p "$RA_CFG_DIR/cores"
