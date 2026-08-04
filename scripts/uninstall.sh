@@ -92,6 +92,21 @@ if grep -qE " $(printf '%s' "$GAME_HOME/ROMs" | sed 's/[][\.*^$/]/\\&/g') " /pro
     exit 1
 fi
 
+# ★把「会把聚合重新造出来」的设定一并清掉★
+#
+# 只拆挂载是不够的：system.gamesdevice 记在 ~/.emulationstation/system.conf，
+# 而那是使用者家目录（预设保留）。留着它的后果是 —— 反安装看起来乾净了，
+# 但只要重装一次，ES 的 ExecStartPre 读到这个键就【自动又聚合起来】，
+# 使用者会觉得「我明明反安装过了，怎麽还是聚合模式」(2026-08-04 实机遇到)。
+#
+# 判准：聚合是**系统层的状态**（挂载），不是语言、音量那种使用者偏好，
+# 所以跟着「撤销系统更改」一起清，与保不保留家目录无关。
+SYSCONF="$GAME_HOME/.emulationstation/system.conf"
+if [ -f "$SYSCONF" ] && grep -qE '^(system\.gamesdevice|global\.externalmount)=' "$SYSCONF"; then
+    log "清除内外盘聚合的设定（system.gamesdevice / global.externalmount）"
+    sed -i -E '/^(system\.gamesdevice|global\.externalmount)=/d' "$SYSCONF"
+fi
+
 # ---- 2. 还原 tty1 自动登入（安装时 disable 了 getty@tty1）----
 log "重新启用 getty@tty1（恢复 tty1 登入终端）"
 systemctl enable getty@tty1.service >/dev/null 2>&1 || true
