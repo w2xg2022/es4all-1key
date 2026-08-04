@@ -80,7 +80,7 @@ curl -fsSL https://raw.githubusercontent.com/w2xg2022/es4all-1key/main/es4all-1k
 - 停用 tty1 的 getty，建立 `es4all.service`：以 `game` 用户自动登入 tty1，KMSDRM 模式启动 EmulationStation
 - 设定 `Restart=always`（异常退出自动重启）并启用开机自启
 
-### 阶段 7：机型专属配置首次下载（`07-profiles.sh`）
+### 阶段 6：机型专属配置首次下载（`06-profiles.sh`）
 - 从 [es4all-profiles](https://github.com/w2xg2022/es4all-profiles) 下载本机型专属的配置与脚本，按 `common` → `armbian/_common` → `armbian/<DEVICE>/_common` → `armbian/<DEVICE>/<机型>` 四层依序套用（后者覆盖前者），最后执行一次 `apply.sh`
 - 之后的更新由 ES 自己同步；本阶段只负责「第一份」——内外盘聚合用的 mergerfs 与键位透传的转换器都由 profiles 下发，不先拉一次的话首次开机这两个功能都是空的
 - **键位透传**（ES 手柄设定 → RetroArch autoconfig）现在整条来自 profiles：转换器与 `controls-changed` 钩子都由本阶段下发。原本自带一份转换器 + systemd path 监听的阶段 6 已移除，避免两条路同时写 autoconfig、两份转换器版本迟早分岔
@@ -102,7 +102,7 @@ curl -fsSL https://raw.githubusercontent.com/w2xg2022/es4all-1key/main/es4all-1k
 「SELECT+X」也是按印有 X 的那颗键，与说明书一致。
 
 > **这些组合由键位精灵的结果推导，不是写死的按钮编号。**
-> 转换器（`es-input-to-retroarch.py`，随 es4all-profiles 下发）把 `es_input.cfg`
+> 转换器（`es-input-to-retroarch.sh`，随 es4all-profiles 下发）把 `es_input.cfg`
 > 翻译成 RetroArch autoconfig，热键就是从你实际按出来的按钮生成的，换任何手柄都对。
 > 本仓库的 `retroarch.cfg` 里那些 `input_*_btn` 因此**一律留空（`nul`）让位** ——
 > 曾经两边各写一套：cfg 说 select=6/start=7、精灵按出来是 7/6，
@@ -127,7 +127,15 @@ curl -fsSL https://raw.githubusercontent.com/w2xg2022/es4all-1key/main/es4all-1k
 
 ### 位置对齐 vs 字母对齐
 
-游戏内 ABXY 采用**实体按键位置对齐**而非字母对齐：手柄下方键固定对应 RetroPad B（PS 手柄为叉/✕）、右方键对应 A（圈/○）、左方键对应 X（方块/□）、上方键对应 Y（三角/△），与真实 PlayStation / SNES 等主机手柄的按键位置手感一致。已对所有默认平台生成对应的 RetroArch remap 档案（`~/.config/retroarch/config/remaps/<core>/`），无需逐一手动设置。
+游戏内 ABXY 采用**实体按键位置对齐**而非字母对齐：手柄下方键固定对应 RetroPad B（PS 手柄为叉/✕）、右方键对应 A（圈/○）、左方键对应 X（方块/□）、上方键对应 Y（三角/△），与真实 PlayStation / SNES 等主机手柄的按键位置手感一致。
+
+**这一层由 autoconfig 一次完成，不需要 remap 档案**：转换器把面键按物理位置写死
+（`input_a_btn="1"`(东) / `input_b_btn="0"`(南) / `input_x_btn="2"`(北) / `input_y_btn="3"`(西)），
+而 RetroPad 的几何本来就是 A=东、B=南、X=北、Y=西，两者天生对齐。
+
+> ⚠️ 早期版本另外产生过一份 A/B 互换的 `.rmp` —— 那是**多翻了一次**（南键会变成 ○）。
+> 现已移除，重装与反安装都会自动清掉旧机器上残留的那些（认内容不认档名，
+> 不会误删你自己做的 remap）。
 
 > 为什么不用字母对齐：PlayStation 符号位置是几何固定的（○右/✕下/△上/□左），与 Xbox 布局刚好相反。若按字母对齐，物理下键（印 A）会触发本应在右边的 ○，产生强烈错位感。位置对齐让「按下方键=触发下方符号」，跟真机一致。二者在同一颗手柄上无法兼得，本项目选位置对齐。
 

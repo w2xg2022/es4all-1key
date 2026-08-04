@@ -130,7 +130,7 @@ if [ -d "$GAME_HOME/.config/retroarch/config/remaps" ]; then
     find "$GAME_HOME/.config/retroarch/config/remaps" -type d -empty -delete 2>/dev/null || true
 fi
 
-# 机型专属配置的落点（阶段 7 从 es4all-profiles 下发的整包：mergerfs、键位转换器、
+# 机型专属配置的落点（阶段 6 从 es4all-profiles 下发的整包：mergerfs、键位转换器、
 # apply.sh、机型资料档…）。纯粹是我们的酬载、不含使用者资料，即使保留家目录也该清掉，
 # 否则下次重装会与新版混在一起。
 rm -rf "$GAME_HOME/.config/es4all" 2>/dev/null || true

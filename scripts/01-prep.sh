@@ -23,7 +23,7 @@ apt-get install -y --no-install-recommends \
     alsa-ucm-conf \
     tzdata \
     fuse3 util-linux python3 exfatprogs ntfs-3g
-# 上面最后一行是「内外盘聚合」要用的（见 07-profiles.sh / 05-autostart.sh）：
+# 上面最后一行是「内外盘聚合」要用的（见 06-profiles.sh / 05-autostart.sh）：
 #   fuse3      mergerfs 是 FUSE 层的 union，没有它挂不起来
 #   util-linux blkid —— 选单列碟、脚本解析 LABEL 都靠它
 #   python3    gamelist 合并脚本

@@ -1,5 +1,5 @@
 #!/bin/bash
-# 阶段 7：首次下载机型专属配置（es4all-profiles）
+# 阶段 6：首次下载机型专属配置（es4all-profiles）
 #
 # ★为什么安装时就要下载一次，不能等 ES 自己同步★
 #   ES 内建的 profiles 客户端(Es4allProfiles)是**背景执行、下次重启 ES 才生效**的，
@@ -10,7 +10,7 @@
 #   之后的更新仍由 ES 自己做，本阶段只负责「第一份」。两边的落点与 scope 规则相同。
 #
 # ★本阶段同时取代了旧的阶段 6（手柄键位同步）★
-#   键位透传现在【整条来自 profiles】：转换器 common/bin/es-input-to-retroarch.py
+#   键位透传现在【整条来自 profiles】：转换器 common/bin/es-input-to-retroarch.sh
 #   ＋ 钩子 controls-changed/10-inputconfig.sh，由本阶段一起下发。
 #   旧的做法是 1key 自带一份 python 装到 /usr/local/bin，再用 systemd .path 监控
 #   es_input.cfg 变更 —— 那会与 profiles 那条**同时**写 autoconfig，而且两份转换器
@@ -183,4 +183,4 @@ if [ -x "$APPLY" ]; then
     su -s /bin/bash "$GAME_USER" -c "HOME='$GAME_HOME' '$APPLY'" || warn "apply.sh 执行失败（不影响安装）"
 fi
 
-log "阶段 7 完成"
+log "阶段 6 完成"
