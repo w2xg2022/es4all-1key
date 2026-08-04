@@ -90,14 +90,24 @@ curl -fsSL https://raw.githubusercontent.com/w2xg2022/es4all-1key/main/es4all-1k
 - 用 mergerfs（FUSE 层的 union）而非 overlayfs——多数人的 ROM 盘是在 Windows 上格式化的 FAT/exFAT，而 overlayfs 连拿它当 lowerdir 都会被内核拒绝
 - 挂载由 `es4all.service` 的 `ExecStartPre` 以 root 执行；在选单里切换后整机重开即重新套用
 
-## 手柄热键默认值
+## 手柄热键
 
-XBOX 360 / XBOX 360 Compatible 手柄
 - SELECT+START：退出游戏
 - SELECT+R1（右肩键）：保存即时存档
 - SELECT+L1（左肩键）：读取即时存档
-- SELECT+X（左侧面键）：呼出 RetroArch 菜单
-- SELECT+Y（上方面键）：切换帧率（FPS）显示
+- SELECT+X：呼出 RetroArch 菜单
+- SELECT+Y：切换帧率（FPS）显示
+
+热键**按手柄上的印刷字母**，不按物理位置——所以任天堂式布局（A 在东）的手柄，
+「SELECT+X」也是按印有 X 的那颗键，与说明书一致。
+
+> **这些组合由键位精灵的结果推导，不是写死的按钮编号。**
+> 转换器（`es-input-to-retroarch.py`，随 es4all-profiles 下发）把 `es_input.cfg`
+> 翻译成 RetroArch autoconfig，热键就是从你实际按出来的按钮生成的，换任何手柄都对。
+> 本仓库的 `retroarch.cfg` 里那些 `input_*_btn` 因此**一律留空（`nul`）让位** ——
+> 曾经两边各写一套：cfg 说 select=6/start=7、精灵按出来是 7/6，
+> 结果「SELECT+X 呼出菜单」按下去毫无反应，而且不会有任何错误提示。
+> 换手柄或键位不对时，重跑一次键位精灵即可，不需要改任何设定档。
 
 > 语系透传：进游戏时会自动把 EmulationStation 的界面语言同步给 RetroArch（简中 / 繁中 / 英文等），RetroArch 菜单不再固定英文。
 
