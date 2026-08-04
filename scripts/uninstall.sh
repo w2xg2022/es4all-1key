@@ -62,16 +62,35 @@ done
 # 底下还叠着外接盘与内盘的 bind。没拆就往下走，最糟的情况是「删家目录」
 # 删到的是**合并视图**，等于连使用者外接盘上的游戏一起删。
 log "拆除内外盘聚合的挂载"
+# ★先停 mergerfs 的 transient unit★：它现在跑在自己的 unit 里（es4all-mergerfs.service，
+# 由 es4all-storage.sh 用 systemd-run 建立），不是 es4all.service 的子进程 ——
+# 上面那圈停服务【停不到它】。不先停就去 umount，等于对着还活着的 FUSE 硬拆。
+systemctl stop es4all-mergerfs.service >/dev/null 2>&1 || true
+systemctl reset-failed es4all-mergerfs.service >/dev/null 2>&1 || true
+
+# ★umount 一律补 -l（lazy）退路★：守护进程已经停掉的 FUSE 挂载点会回
+# 「Transport endpoint is not connected」，普通 umount 对这种殭尸挂载会失败，
+# 拆不掉就会一路卡到后面的「删家目录」。
 for mp in "$GAME_HOME/ROMs" "$GAME_HOME/.es4all-roms/merged" \
           "$GAME_HOME/games-external" "$GAME_HOME/games-internal"; do
-    umount "$mp" 2>/dev/null || true
+    umount "$mp" 2>/dev/null || umount -l "$mp" 2>/dev/null || true
 done
 # 保险：ROMs 上可能叠了不只一层（重复套用过），拆到不是挂载点为止（最多 5 次）
 for _ in 1 2 3 4 5; do
     awk -v p="$GAME_HOME/ROMs" '$2 == p { f = 1 } END { exit !f }' /proc/mounts || break
-    umount "$GAME_HOME/ROMs" 2>/dev/null || break
+    umount "$GAME_HOME/ROMs" 2>/dev/null || umount -l "$GAME_HOME/ROMs" 2>/dev/null || break
 done
 rmdir "$GAME_HOME/games-external" "$GAME_HOME/games-internal" 2>/dev/null || true
+rm -rf "$GAME_HOME/.es4all-roms" 2>/dev/null || true
+
+# ★确认真的拆干净了才继续★：底下会问「要不要删家目录」，而 ROMs 若还挂着外接盘，
+# 删下去就是把使用者【外接盘上的游戏】一起删掉 —— 不可逆，宁可中止。
+if grep -qE " $(printf '%s' "$GAME_HOME/ROMs" | sed 's/[][\.*^$/]/\\&/g') " /proc/mounts; then
+    err "★$GAME_HOME/ROMs 仍是挂载点，拆不掉★"
+    err "  为避免误删外接盘上的游戏，反安装到此中止。"
+    err "  请先手动处理：systemctl stop es4all-mergerfs; umount -l '$GAME_HOME/ROMs'"
+    exit 1
+fi
 
 # ---- 2. 还原 tty1 自动登入（安装时 disable 了 getty@tty1）----
 log "重新启用 getty@tty1（恢复 tty1 登入终端）"
@@ -100,6 +119,22 @@ restore_or_remove /boot/armbianEnv.txt          # verbosity/bootlogo/extraargs
 restore_or_remove /etc/samba/smb.conf           # [ROMs] 共享
 restore_or_remove /etc/asound.conf yes          # 安装未备份，属新建 → 删除
 restore_or_remove /etc/fuse.conf                # user_allow_other（聚合用）
+
+# 旧版留下的 A/B 互换 remap（新版已不再产生，见 03-retroarch.sh 的说明）。
+# ★认内容不认档名★：只删我们写的那种（内容是 A/B 互换），免得误删使用者自己做的 remap。
+if [ -d "$GAME_HOME/.config/retroarch/config/remaps" ]; then
+    find "$GAME_HOME/.config/retroarch/config/remaps" -name '*.rmp' \
+        -exec grep -l 'input_player1_btn_a = "0"' {} + 2>/dev/null | while read -r f; do
+        rm -f "$f"
+    done
+    find "$GAME_HOME/.config/retroarch/config/remaps" -type d -empty -delete 2>/dev/null || true
+fi
+
+# 机型专属配置的落点（阶段 7 从 es4all-profiles 下发的整包：mergerfs、键位转换器、
+# apply.sh、机型资料档…）。纯粹是我们的酬载、不含使用者资料，即使保留家目录也该清掉，
+# 否则下次重装会与新版混在一起。
+rm -rf "$GAME_HOME/.config/es4all" 2>/dev/null || true
+rm -f "$GAME_HOME/.emulationstation/scripts/controls-changed/10-inputconfig.sh" 2>/dev/null || true
 
 # 安装时建的 ~/.config/emulationstation -> ~/.emulationstation 符号连结。
 # ★只删连结本身、绝不能用 rm -rf★：跟着它走会把 ES 的真实设定目录（含键位、
